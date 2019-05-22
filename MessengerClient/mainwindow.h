@@ -35,8 +35,8 @@ public slots:
 
 private slots:
     void on_actionLog_in_triggered();
-
     void on_actionDisconnect_triggered();
+    //void slotAcceptUserLogin(QString& uname, QString& pw);
 
 signals:
     void connected();

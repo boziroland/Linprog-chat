@@ -27,18 +27,11 @@
     <property name="title">
      <string>Fi&amp;le</string>
     </property>
+    <addaction name="actionRegister"/>
     <addaction name="actionLog_in"/>
     <addaction name="actionDisconnect"/>
    </widget>
    <addaction name="menuFile"/>
-  </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar">
    <property name="enabled">
@@ -56,6 +49,11 @@
    </property>
    <property name="text">
     <string>&amp;Disconnect</string>
+   </property>
+  </action>
+  <action name="actionRegister">
+   <property name="text">
+    <string>Register</string>
    </property>
   </action>
  </widget>
