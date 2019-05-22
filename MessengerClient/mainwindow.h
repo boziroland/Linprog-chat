@@ -28,15 +28,19 @@ public:
 private:
     Ui::MainWindow *ui;
     QTcpSocket* client_socket;
-/*
+
 public slots:
-    void connect();
-*/
+    void slotConnectionStatus(QString status);
+    //void connect();
+
 private slots:
     void on_actionLog_in_triggered();
 
+    void on_actionDisconnect_triggered();
+
 signals:
     void connected();
+    void signalConnectionStatus(QString status);
 
 };
 

@@ -6,6 +6,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow), client_socket(new QTcpSocket(this)){
 
     connect(client_socket, &QTcpSocket::connected, this, &MainWindow::connected);
+    connect(this, SIGNAL(signalConnectionStatus(QString)), this, SLOT(slotConnectionStatus(QString)));
     ui->setupUi(this);
 
 }
@@ -18,22 +19,30 @@ MainWindow::~MainWindow() {
 
 void MainWindow::SendDataToServer(Msg msg){
 
+    emit signalConnectionStatus(QString("Connecting"));
+
     if(client_socket->state() == QAbstractSocket::ConnectedState){
         //QDataStream stream(client_socket);
         QByteArray block;
         QDataStream stream(&block, QIODevice::WriteOnly);
         stream.setVersion(QDataStream::Qt_5_7);
 
-        //switch
-
-        stream << QString(msg.id);
-        stream << msg.username;
-        stream << msg.message;
-        stream << QString("asd");
+        if(msg.id == QString("001")) { //login esetén
+            stream << QString(msg.id);
+            stream << msg.username;
+            stream << msg.message;
+        }
+        else stream << QString("asd");
 
         stream.device()->seek(0); //magic
         client_socket->write(block);
+
+        emit signalConnectionStatus(QString("Connected"));
+        return;
     }
+
+    emit signalConnectionStatus(QString("Error"));
+    return;
 
 }
 
@@ -49,7 +58,6 @@ void MainWindow::on_actionLog_in_triggered() {
         client_socket->waitForConnected();
 
         Msg msg;
-        //msg.messages = new std::vector<QString>();
         msg.id = QString("001");
         msg.username = ld->dialog_text[0];
         msg.message = ld->dialog_text[1];
@@ -57,4 +65,30 @@ void MainWindow::on_actionLog_in_triggered() {
         SendDataToServer(msg);
 
     }
+}
+
+// A kapcsolat allapotanak kijelzese es a menuelemek allitasa.
+// Attol fuggoen, hogy mi a halozati kapcsolat allapota kulonbozo szoveget irunk ki,
+// illetve kulonbozo menupontokat engedelyezunk.
+void MainWindow::slotConnectionStatus(QString status) {
+    // A halozati kapcsolat allapotanak kiirasa a status bar-ra.
+    if(status == QString("Error")) statusBar()->showMessage("Error");
+    else if(status == QString("Connecting")) statusBar()->showMessage("Connecting...");
+    else if(status == QString("Connected")) statusBar()->showMessage("Connected");
+    else if(status == QString("Disconnected")) statusBar()->showMessage("Disconnected");
+
+    if((status == QString("Error")) || (status == QString("Disconnected"))) {
+        ui->actionLog_in->setEnabled(true);
+        ui->actionDisconnect->setEnabled(false);
+    }
+    else if((status == QString("Connecting")) || (status == QString("Connected"))) {
+        ui->actionLog_in->setEnabled(false);
+        ui->actionDisconnect->setEnabled(true);
+    }
+}
+
+void MainWindow::on_actionDisconnect_triggered() {
+    client_socket->disconnect();
+    client_socket->abort();
+    emit signalConnectionStatus(QString("Disconnected"));
 }
