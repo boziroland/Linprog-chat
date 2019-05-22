@@ -4,7 +4,7 @@ Server::Server(QObject *parent) : QTcpServer(parent), server_socket(new QTcpSock
 
     connect(server_socket, &QTcpSocket::readyRead, this, &Server::Ready2Read);
 
-    listen(QHostAddress::Any);
+    listen(QHostAddress::Any, 45732);
     std::cout << "Server created!" << std::endl;
 }
 
@@ -38,7 +38,7 @@ void Server::Ready2Read(){
         stream >> msg.username;
         stream >> msg.message;
 
-        stream >> ;
+        //stream >> ;
 
         //ReceiveCommunication(str);
         if(stream.commitTransaction()){

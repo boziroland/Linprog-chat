@@ -9,6 +9,13 @@ namespace Ui {
     class MainWindow;
 }
 
+//ilyeneket kene majd kuldozgetni imo
+struct Msg {
+    QString id; //001: login
+    QString username;
+    QString message;
+};
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
