@@ -7,6 +7,13 @@
 #include <iostream>
 #include <QDataStream>
 
+
+struct Msg{
+    QString id;
+    QString username;
+    QString message;
+};
+
 class Server : public QTcpServer
 {
     Q_OBJECT
@@ -18,7 +25,7 @@ public:
     QTcpSocket* server_socket;
 
     explicit Server(QObject *parent = nullptr);
-    void ReceiveCommunication(QString);
+    void ReceiveCommunication(Msg);
 
 //signals:
 

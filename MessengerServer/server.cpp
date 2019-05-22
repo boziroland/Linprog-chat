@@ -4,13 +4,15 @@ Server::Server(QObject *parent) : QTcpServer(parent), server_socket(new QTcpSock
 
     connect(server_socket, &QTcpSocket::readyRead, this, &Server::Ready2Read);
 
-    listen(QHostAddress::Any,45732);
+    listen(QHostAddress::Any);
     std::cout << "Server created!" << std::endl;
 }
 
-void Server::ReceiveCommunication(QString str){
+void Server::ReceiveCommunication(Msg msg){
     //std::cout << "tell me its working" << std::endl;
-    std::cout << str.toStdString() << std::endl;
+    std::cout << msg.id.toStdString() << std::endl;
+    std::cout << msg.username.toStdString() << std::endl;
+    std::cout << msg.message.toStdString() << std::endl;
 }
 
 void Server::incomingConnection(qintptr socketDescriptor){
@@ -27,14 +29,20 @@ void Server::Ready2Read(){
     stream.setVersion(QDataStream::Qt_5_7);
 
     QString str;
+    Msg msg;// = new Msg() ;
 
     while(1){
         stream.startTransaction();
-        stream >> str;
+        //stream >> str;
+        stream >> msg.id;
+        stream >> msg.username;
+        stream >> msg.message;
+
+        stream >> ;
 
         //ReceiveCommunication(str);
         if(stream.commitTransaction()){
-            ReceiveCommunication(str);
+            ReceiveCommunication(msg);
         }else{
             break;
         }
