@@ -6,6 +6,7 @@
 #include <QTcpServer>
 #include <iostream>
 #include <QDataStream>
+#include "database.h"
 
 
 struct Msg{
@@ -23,8 +24,10 @@ protected:
 
 public:
     QTcpSocket* server_socket;
+    Database* users;
 
     explicit Server(QObject *parent = nullptr);
+    virtual ~Server();
     void ReceiveCommunication(Msg);
 
 //signals:
