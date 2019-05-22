@@ -16,7 +16,7 @@ public:
 
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void SendDataToServer();
+    void SendDataToServer(Msg msg);
 
 private:
     Ui::MainWindow *ui;

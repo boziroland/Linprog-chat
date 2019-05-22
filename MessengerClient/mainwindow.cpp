@@ -4,8 +4,9 @@
 #include <QHostAddress>
 
 //ilyeneket kene majd kuldozgetni imo
-struct Msg{
-    QString id;
+struct Msg {
+    QString id; //001: login
+    QString username;
     QString message;
 };
 
@@ -22,7 +23,7 @@ MainWindow::~MainWindow(){
 
 }
 
-void MainWindow::SendDataToServer(){
+void MainWindow::SendDataToServer(Msg msg){
 
     if(client_socket->state() == QAbstractSocket::ConnectedState){
         //QDataStream stream(client_socket);
@@ -30,7 +31,11 @@ void MainWindow::SendDataToServer(){
         QDataStream stream(&block, QIODevice::WriteOnly);
         stream.setVersion(QDataStream::Qt_5_7);
 
-        stream << QString("nezeset meg a jarasat");
+        //switch
+
+        stream << msg.id;
+        stream << msg.username;
+        stream << msg.message;
         stream.device()->seek(0); //magic
         client_socket->write(block);
     }
@@ -42,13 +47,18 @@ void MainWindow::on_actionLog_in_triggered() {
     LoginDialog* ld = new LoginDialog(this);
     //ld->exec();
 
-    if(ld->exec() == QDialog::Accepted){
+    if(ld->exec() == QDialog::Accepted) {
 
-        //client_socket->connectToHost(ld->dialog_text[2],45732);
-        client_socket->connectToHost(QHostAddress::LocalHost,45732);
+        client_socket->connectToHost(ld->dialog_text[2],45732);
+        //client_socket->connectToHost(QHostAddress::LocalHost,45732);
         client_socket->waitForConnected();
 
-        SendDataToServer();
+        Msg msg;
+        msg.messages = new std::vector<QString>();
+        msg.username = ld->dialog_text[0];
+        msg.message = ld->dialog_text[1];
+
+        SendDataToServer(msg);
 
     }
 }
