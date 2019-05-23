@@ -182,15 +182,10 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
             qry.bindValue(":username", msg.username);
             qry.exec();
             qry.first();
-
+            qDebug() << "this many people have the to be registered name: " << qry.value(0).toInt();
             if(qry.value(0).toInt() > 0) {
                 Msg UserExistsMsg;
                 QString str[5] = {"104", msg.username, "Error", "","" }; //sikertelen regisztráció
-//                UserExistsMsg.id = "104";
-//                UserExistsMsg.username = msg.username;
-//                UserExistsMsg.message = "Error";
-//                UserExistsMsg.room = "";
-//                UserExistsMsg.email = "";
                 unicast(createMsg(str, &UserExistsMsg), sender);
                 //ha igaz, akkor hibát küldünk, ilyen nevű felhasználó már van
                 return;
@@ -202,7 +197,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
             addUserQry.bindValue(":username", msg.username);
             addUserQry.bindValue(":password", msg.message);
             addUserQry.bindValue(":email", msg.email);
-            //qDebug() << msg.email;
+            qDebug() << "the email: "<< msg.email;
 
             addUserQry.exec();
 

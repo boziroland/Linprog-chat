@@ -40,6 +40,8 @@ void ServerWorker::sendJson(const Msg &message)
     socketStream << message.id;
     socketStream << message.username;
     socketStream << message.message;
+    socketStream << message.room;
+    socketStream << message.email;
 }
 
 void ServerWorker::disconnectFromClient()
@@ -72,6 +74,8 @@ void ServerWorker::receiveJson()
         socketStream >> msg.id;
         socketStream >> msg.username;
         socketStream >> msg.message;
+        socketStream >> msg.room;
+        socketStream >> msg.email;
 
         if (socketStream.commitTransaction()) {
             emit jsonReceived(msg);
