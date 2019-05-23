@@ -6,9 +6,10 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QTimer>
+#include <QtDebug>
 
 ChatServer::ChatServer(QObject *parent)
-    : QTcpServer(parent)
+    : QTcpServer(parent), users(new ServerDatabase())
 {
     //listen(QHostAddress::Any, 45732);
 }
@@ -102,67 +103,136 @@ void ChatServer::stopServer()
     close();
 }
 
-/*
-void ChatServer::jsonFromLoggedOut(ServerWorker *sender, const QJsonObject &docObj)
+void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
 {
-    Q_ASSERT(sender);
-    const QJsonValue typeVal = docObj.value(QLatin1String("type"));
-    if (typeVal.isNull() || !typeVal.isString())
-        return;
-    if (typeVal.toString().compare(QLatin1String("login"), Qt::CaseInsensitive) != 0)
-        return;
-    const QJsonValue usernameVal = docObj.value(QLatin1String("username"));
-    if (usernameVal.isNull() || !usernameVal.isString())
-        return;
-    const QString newUserName = usernameVal.toString().simplified();
-    if (newUserName.isEmpty())
-        return;
-    for (ServerWorker *worker : qAsConst(m_clients)) {
-        if (worker == sender)
-            continue;
-        if (worker->userName().compare(newUserName, Qt::CaseInsensitive) == 0) {
-            QJsonObject message;
-            message["type"] = QStringLiteral("login");
-            message["success"] = false;
-            message["reason"] = QStringLiteral("duplicate username");
-            sendJson(sender, message);
+
+    if(msg.id == QString("001")) { //login
+    /*
+            std::string qstr = "select username from users where username = '";
+            qstr.append(msg.username.toStdString());
+            qstr.append("' and password = '");
+            qstr.append(msg.message.toStdString());
+            qstr.append("';");
+    */
+
+            QString qstr = "select count(username) from users where username = :username and password = :password ;";
+
+            QSqlQuery qry;
+
+            qry.prepare(qstr);
+
+            qry.bindValue(":username", msg.username);
+            qry.bindValue(":password", msg.message);
+
+            qry.exec();
+
+            qDebug() << "query has this many results: " << qry.value(0).toInt();
+            if(qry.value(0).toInt() == 1){
+                Msg back;
+                back.id = "101";
+                back.username = "";
+                back.message = "";
+                unicast(back, sender);
+            }
+
+            //if(users->QueryDB(QString(qstr.c_str()))){
+
+            //qry.exec();
+
+            if(qry.next()) {
+                //ha igaz, akkor visszaküldés pozitív megerősítést
+                QString addUserStr = "insert into General (username) values (:username);"; //general szobához hozzáadás
+                QSqlQuery addUserQry;
+                addUserQry.prepare(addUserStr);
+                qry.bindValue(":username",msg.username);
+
+                addUserQry.exec();
+
+            } else {
+                //hiba
+            }
+
             return;
         }
-    }
-    sender->setUserName(newUserName);
-    QJsonObject successMessage;
-    successMessage["type"] = QStringLiteral("login");
-    successMessage["success"] = true;
-    sendJson(sender, successMessage);
-    QJsonObject connectedMessage;
-    connectedMessage["type"] = QStringLiteral("newuser");
-    connectedMessage["username"] = newUserName;
-    broadcast(connectedMessage, sender);
-}
-*/
-void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg docObj)
-{
-/*
-    //Q_ASSERT(sender);
-    const QJsonValue typeVal = docObj.value(QLatin1String("type"));
-    if (typeVal.isNull() || !typeVal.isString())
-        return;
-    if (typeVal.toString().compare(QLatin1String("message"), Qt::CaseInsensitive) != 0)
-        return;
+        if(msg.id == QString("002")) { //regisztráció
+            QString qstr = "select username from users where username = :username ;";
 
-    const QJsonValue textVal = docObj.value(QLatin1String("text"));
-    if (textVal.isNull() || !textVal.isString())
-        return;
-    const QString text = textVal.toString().trimmed();
-    if (text.isEmpty())
-        return;
+            QSqlQuery qry;
+            qry.prepare(qstr);
+            qry.bindValue(":username",msg.username);
+            qry.exec();
 
-    QJsonObject message;
-    message["type"] = QStringLiteral("message");
-    message["text"] = text;
-    message["sender"] = sender->userName();
-    */
-    broadcast(docObj, sender);
+            if(qry.next()) {
+                //ha igaz, akkor hibát küldünk, ilyen nevű felhasználó már van
+                return;
+            }
+
+            QString addUserStr = "insert into users (username, password) values (:username, :password);";
+            QSqlQuery addUserQry;
+            addUserQry.prepare(addUserStr);
+            addUserQry.bindValue(":username", msg.username);
+            addUserQry.bindValue(":password", msg.message);
+
+            addUserQry.exec();
+
+            return;
+        }
+        if(msg.id == QString("005")) { //feliratkozás szobára
+            QString qstr = "select username from :room where username = :username ;";
+
+            QSqlQuery qry;
+            qry.prepare(qstr);
+            qry.bindValue(":username",msg.username);
+            qry.bindValue(":room", msg.message);
+            qry.exec();
+
+            if(qry.next()) return; //ha igaz, akkor visszatérünk, a felhasználó már feliratkozott a szobára
+
+            QString addUserStr = "insert into :room (username) values (:username);";
+            QSqlQuery addUserQry;
+            addUserQry.prepare(addUserStr);
+            addUserQry.bindValue(":username", msg.username);
+            addUserQry.bindValue(":room", msg.message);
+
+            addUserQry.exec();
+
+            return;
+        }
+        if(msg.id == QString("006")) { //leiratkozás szobáról
+            QString qstr = "select username from :room where username = :username ;";
+
+            QSqlQuery qry;
+            qry.prepare(qstr);
+            qry.bindValue(":username",msg.username);
+            qry.bindValue(":room", msg.message);
+            qry.exec();
+
+            if(!qry.next()) return; //ha igaz, akkor visszatérünk, a felhasználó már nincs feliratkozva
+
+            QString addUserStr = "delete from :room (username) where username= 'username;";
+            QSqlQuery addUserQry;
+            addUserQry.prepare(addUserStr);
+            addUserQry.bindValue(":username", msg.username);
+            addUserQry.bindValue(":room", msg.message);
+
+            addUserQry.exec();
+
+            return;
+        }
+        if(msg.id == QString("009")) { //kijelentkezés
+            for(auto room: users->getRooms()) {
+                QString addUserStr = "delete from :room (username) where username= :username;";
+                QSqlQuery addUserQry;
+                addUserQry.prepare(addUserStr);
+                addUserQry.bindValue(":username", msg.username);
+                addUserQry.bindValue(":room", msg.message);
+
+                addUserQry.exec();
+            }
+            return;
+        }
+
+    broadcast(msg, sender);
 }
 
 

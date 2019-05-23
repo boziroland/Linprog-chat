@@ -1,4 +1,4 @@
-QT += core network gui widgets
+QT += core network gui widgets sql
 
 TARGET = QtSimpleChatServer
 TEMPLATE = app
@@ -11,13 +11,15 @@ HEADERS += \
     chatserver.h \
     serverworker.h \
     serverwindow.h \
-    msg.h
+    msg.h \
+    serverdatabase.h
 
 SOURCES += \
     chatserver.cpp \
     servermain.cpp \
     serverworker.cpp \
-    serverwindow.cpp
+    serverwindow.cpp \
+    serverdatabase.cpp
 
 FORMS += \
     serverwindow.ui

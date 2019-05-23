@@ -4,6 +4,8 @@
 #include <QTcpServer>
 #include <QVector>
 #include "msg.h"
+#include <QSqlQuery>
+#include "serverdatabase.h"
 
 //class QThread;
 class ServerWorker;
@@ -27,9 +29,10 @@ private slots:
     void userError(ServerWorker *sender);
 private:
     //void jsonFromLoggedOut(ServerWorker *sender, const QJsonObject &doc);
-    void jsonFromLoggedIn(ServerWorker *sender, const Msg doc);
+    void jsonFromLoggedIn(ServerWorker *sender, const Msg);
     void sendJson(ServerWorker *destination, const Msg &message);
     QVector<ServerWorker *> m_clients;
+    ServerDatabase* users;
 };
 
 #endif // CHATSERVER_H
