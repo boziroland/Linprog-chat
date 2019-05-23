@@ -35,7 +35,7 @@ void MainWindow::SendDataToServer(Msg msg) {
         stream.setVersion(QDataStream::Qt_5_7);
 
         if(msg.id == QString("001") || msg.id == QString("002") || msg.id == QString("003") || msg.id == QString("009")) { //login, reg, üzenetküld. és dc esetén
-            emit signalConnectionStatus(QString("Connecting"));
+            if(msg.id == QString("001")) emit signalConnectionStatus(QString("Connecting"));
 
             stream << QString(msg.id);
             stream << msg.username;
@@ -198,6 +198,8 @@ void MainWindow::onReadyRead() {
         socketStream >> msg.id;
         socketStream >> msg.username;
         socketStream >> msg.message;
+        socketStream >> msg.room;
+        socketStream >> msg.email;
 
         if (socketStream.commitTransaction()) {
             if(msg.id == QString("101")) { //login elfogadva
@@ -219,9 +221,11 @@ void MainWindow::onReadyRead() {
             }
             if(msg.id == QString("103")) { //regisztráció sikeres
                 QMessageBox::information(this, "Register", "Thank you for joining, please log in.");
+                //emit signalConnectionStatus(QString("Disconnected"));
             }
             if(msg.id == QString("104")) { //regisztráció sikertelen
                 QMessageBox::information(this, "Register", "Invalid username or password.");
+                //emit signalConnectionStatus(QString("Disconnected"));
             }
         } else {
             break;
