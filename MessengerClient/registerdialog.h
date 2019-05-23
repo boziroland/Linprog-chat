@@ -11,9 +11,12 @@ class RegisterDialog : public QDialog {
     Q_OBJECT
 
 public:
-    QString dialog_text[3];
+    QString dialog_text[4];
     explicit RegisterDialog(QWidget *parent = 0);
     ~RegisterDialog();
+
+private slots:
+    void on_buttonBox_accepted();
 
 private:
     Ui::RegisterDialog *ui;
