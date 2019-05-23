@@ -125,6 +125,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
             qry.bindValue(":password", msg.message);
 
             qry.exec();
+            qry.first();
 
             qDebug() << "query has this many results: " << qry.value(0).toInt();
             if(qry.value(0).toInt() == 1){
