@@ -23,6 +23,8 @@ void ClientHandler::ReceiveMsg(){
         stream >> msg.id;
         stream >> msg.username;
         stream >> msg.message;
+        stream >> msg.room;
+        stream >> msg.email;
 
         if(stream.commitTransaction()){
             emit(sendMsgToServer(msg));

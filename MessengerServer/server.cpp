@@ -39,6 +39,8 @@ void Server::ReceiveCommunication(Msg msg) {
     std::cout << msg.id.toStdString() << std::endl;
     std::cout << msg.username.toStdString() << std::endl;
     std::cout << msg.message.toStdString() << std::endl;
+    std::cout << msg.room.toStdString() << std::endl;
+    std::cout << msg.email.toStdString() << std::endl;
 
     if(msg.id == QString("001")) { //login
 /*

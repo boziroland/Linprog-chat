@@ -103,6 +103,16 @@ void ChatServer::stopServer()
     close();
 }
 
+Msg ChatServer::createMsg(QString* str, Msg* msg){
+    msg->id = str[0];
+    msg->username = str[1];
+    msg->message = str[2];
+    msg->room = str[3];
+    msg->email = str[4];
+
+    return *msg;
+}
+
 void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
 {
 
@@ -179,23 +189,31 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
 
             if(qry.value(0).toInt() > 0) {
                 Msg UserExistsMsg;
-                UserExistsMsg.id = "104";
-                UserExistsMsg.username = msg.username;
-                UserExistsMsg.message = "Error";
-                UserExistsMsg.room = "";
-                UserExistsMsg.email = "";
-                unicast(UserExistsMsg, sender);
+                QString str[5] = {"104", msg.username, "Error", "","" };
+//                UserExistsMsg.id = "104";
+//                UserExistsMsg.username = msg.username;
+//                UserExistsMsg.message = "Error";
+//                UserExistsMsg.room = "";
+//                UserExistsMsg.email = "";
+                unicast(createMsg(str, &UserExistsMsg), sender);
                 //ha igaz, akkor hibát küldünk, ilyen nevű felhasználó már van
                 return;
             }
 
-            QString addUserStr = "insert into users (username, password) values (:username, :password);";
+            QString addUserStr = "insert into users (username, password, email) values (:username, :password, :email);";
             QSqlQuery addUserQry;
             addUserQry.prepare(addUserStr);
             addUserQry.bindValue(":username", msg.username);
             addUserQry.bindValue(":password", msg.message);
+            addUserQry.bindValue(":email", msg.email);
+            //qDebug() << msg.email;
 
             addUserQry.exec();
+
+            Msg SuccessfulRegistrationMsg;
+            QString str[5] = {"105", msg.username, "Success!", "", msg.email};
+
+            unicast(createMsg(str, &SuccessfulRegistrationMsg),sender);
 
             return;
         }

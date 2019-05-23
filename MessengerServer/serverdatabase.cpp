@@ -5,6 +5,7 @@ ServerDatabase::ServerDatabase()
 {
     QDir path;
     QString pathString = path.currentPath() + "/myDb.db";
+    qDebug() << pathString;
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(pathString);
     std::cout << pathString.toStdString() << std::endl;
