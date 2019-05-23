@@ -8,19 +8,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(client_socket, &QTcpSocket::connected, this, &MainWindow::connected);
     connect(this, SIGNAL(signalConnectionStatus(QString)), this, SLOT(slotConnectionStatus(QString)));
+
+    currentUser = nullptr;
+
     ui->setupUi(this);
 
 }
 
 MainWindow::~MainWindow() {
-
+    delete currentUser;
     delete ui;
 
 }
 
-void MainWindow::SendDataToServer(Msg msg){
-
-    emit signalConnectionStatus(QString("Connecting"));
+void MainWindow::SendDataToServer(Msg msg) {
 
     if(client_socket->state() == QAbstractSocket::ConnectedState) {
         //QDataStream stream(client_socket);
@@ -29,6 +30,28 @@ void MainWindow::SendDataToServer(Msg msg){
         stream.setVersion(QDataStream::Qt_5_7);
 
         if(msg.id == QString("001")) { //login esetén
+            emit signalConnectionStatus(QString("Connecting"));
+
+            stream << QString(msg.id);
+            stream << msg.username;
+            stream << msg.message;
+
+            //válasz
+
+            QString successMsg = "You have successfully logged in";
+            QMessageBox::information(this, "Log in", successMsg);
+
+            if(currentUser!=nullptr) delete(currentUser);
+            currentUser = new User(msg.username);
+
+            emit signalConnectionStatus(QString("Connected"));
+        }
+        else if(msg.id == QString("002")) { //regisztráció esetén
+            stream << QString(msg.id);
+            stream << msg.username;
+            stream << msg.message;
+        }
+        else if(msg.id == QString("003")) { //üzenetküldés esetén
             stream << QString(msg.id);
             stream << msg.username;
             stream << msg.message;
@@ -38,10 +61,6 @@ void MainWindow::SendDataToServer(Msg msg){
         stream.device()->seek(0); //magic
         client_socket->write(block);
 
-        QString successMsg = "You have successfully logged in";
-        QMessageBox::information(this, "Log in", successMsg);
-
-        emit signalConnectionStatus(QString("Connected"));
         return;
     }
 
@@ -54,21 +73,25 @@ void MainWindow::SendDataToServer(Msg msg){
 }
 
 void MainWindow::on_actionLog_in_triggered() {
-
     LoginDialog* ld = new LoginDialog(this);
-    //ld->exec();
 
     if(ld->exec() == QDialog::Accepted) {
+
+        if(ld->dialog_text[0].isNull() || ld->dialog_text[1].isNull()) {
+            QString errorMsg = "Please enter your username and password.";
+            QMessageBox::information(this, "Error", errorMsg);
+            delete(ld);
+            return;
+        }
 
         client_socket->connectToHost(ld->dialog_text[2], 45732);
         //client_socket->connectToHost(QHostAddress::LocalHost,45732);
 
-        //connect( ld, SIGNAL (acceptLogin(QString&,QString&,int&)), this, SLOT (slotAcceptUserLogin(QString&,QString&)));
-
-        if(!client_socket->waitForConnected()) {
+        if(!client_socket->waitForConnected(3000)) {
             QString errorMsg = "Error, host not found";
             QMessageBox::information(this, "Error", errorMsg);
             emit signalConnectionStatus(QString("Error"));
+            delete(ld);
             return;
         }
 
@@ -80,6 +103,7 @@ void MainWindow::on_actionLog_in_triggered() {
         SendDataToServer(msg);
 
     }
+    delete(ld);
 }
 
 // A kapcsolat allapotanak kijelzese es a menuelemek allitasa.
@@ -105,10 +129,62 @@ void MainWindow::slotConnectionStatus(QString status) {
 void MainWindow::on_actionDisconnect_triggered() {
     client_socket->disconnect();
     client_socket->abort();
+
+    Msg msg;
+    msg.id = QString("009");
+    msg.username = currentUser->getUsername();
+    msg.message = "";
+
+    SendDataToServer(msg);
+
+    delete(currentUser);
+
     emit signalConnectionStatus(QString("Disconnected"));
 }
 
-//void MainWindow::slotAcceptUserLogin(QString& uname, QString& pw) {
-//    QString msg = "Successfully logged in";
-//    QMessageBox::information(this, "Log in", msg);
-//}
+void MainWindow::on_pushButton_clicked() {
+    if(client_socket->state() != QAbstractSocket::ConnectedState) return;
+
+    Msg msg;
+    msg.id = QString("003");
+    msg.username = currentUser->getUsername();
+    msg.message = ui->msgLineEdit->text();
+
+    //QMessageBox::information(this, "Debug", msg.message);
+
+    SendDataToServer(msg);
+    ui->msgLineEdit->clear();
+}
+
+void MainWindow::on_actionRegister_triggered() {
+    RegisterDialog* rd = new RegisterDialog(this);
+
+    if(rd->exec() == QDialog::Accepted) {
+
+        if(rd->dialog_text[0] == NULL || rd->dialog_text[1] == NULL) {
+            QString errorMsg = "Please enter a valid username and password.";
+            QMessageBox::information(this, "Error", errorMsg);
+            delete(rd);
+            return;
+        }
+
+        client_socket->connectToHost(rd->dialog_text[2], 45732);
+        //client_socket->connectToHost(QHostAddress::LocalHost,45732);
+
+        if(!client_socket->waitForConnected(3000)) {
+            QString errorMsg = "Error, host not found";
+            QMessageBox::information(this, "Error", errorMsg);
+            delete(rd);
+            return;
+        }
+
+        Msg msg;
+        msg.id = QString("002");
+        msg.username = rd->dialog_text[0];
+        msg.message = rd->dialog_text[1];
+
+        SendDataToServer(msg);
+
+    }
+    delete(rd);
+}

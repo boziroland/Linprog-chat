@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QTcpSocket>
 #include <QDataStream>
+#include "user.h"
+#include "registerdialog.h"
 
 namespace Ui {
     class MainWindow;
@@ -28,6 +30,7 @@ public:
 private:
     Ui::MainWindow *ui;
     QTcpSocket* client_socket;
+    User* currentUser;
 
 public slots:
     void slotConnectionStatus(QString status);
@@ -37,6 +40,10 @@ private slots:
     void on_actionLog_in_triggered();
     void on_actionDisconnect_triggered();
     //void slotAcceptUserLogin(QString& uname, QString& pw);
+
+    void on_pushButton_clicked();
+
+    void on_actionRegister_triggered();
 
 signals:
     void connected();

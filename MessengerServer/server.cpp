@@ -16,8 +16,9 @@ Server::~Server(){
     delete users;
 }
 
-void Server::incomingConnection(qintptr socketDescriptor){
+void Server::incomingConnection(qintptr socketDescriptor) {
     std::cout << "A client would like to join!" << std::endl;
+    /*
     ClientHandler* handler = new ClientHandler(this);
 
     if(handler->setSocketD(socketDescriptor)){
@@ -29,16 +30,17 @@ void Server::incomingConnection(qintptr socketDescriptor){
     //connect(handler, &ClientHandler::getDisconnected, this, std::bind(&Server::userDisconnected,this,handler));
 
     client_list.append(handler);
-    //server_socket->setSocketDescriptor(socketDescriptor);
+    */
+    server_socket->setSocketDescriptor(socketDescriptor);
 
 }
 
-void Server::ReceiveCommunication(Msg msg){
+void Server::ReceiveCommunication(Msg msg) {
     std::cout << msg.id.toStdString() << std::endl;
     std::cout << msg.username.toStdString() << std::endl;
     std::cout << msg.message.toStdString() << std::endl;
 
-    if(msg.id == QString("001")){ //login
+    if(msg.id == QString("001")) { //login
 /*
         std::string qstr = "select username from users where username = '";
         qstr.append(msg.username.toStdString());
@@ -57,11 +59,98 @@ void Server::ReceiveCommunication(Msg msg){
         qry.bindValue(":password",msg.message);
 
         //if(users->QueryDB(QString(qstr.c_str()))){
-        if(users->QueryDB(qry)){
-            //ha igaz, akkor visszaküldés pozitív megerősítést
-        }
-    }
 
+        qry.exec();
+
+        if(qry.next()) {
+            //ha igaz, akkor visszaküldés pozitív megerősítést
+            QString addUserStr = "insert into :room (username) values (':username');"; //general szobához hozzáadás
+            QSqlQuery addUserQry;
+            addUserQry.prepare(addUserStr);
+
+            addUserQry.exec();
+
+        }
+
+        return;
+    }
+    if(msg.id == QString("002")) { //regisztráció
+        QString qstr = "select username from users where username = :username ;";
+
+        QSqlQuery qry;
+        qry.prepare(qstr);
+        qry.bindValue(":username",msg.username);
+        qry.exec();
+
+        if(qry.next()) {
+            //ha igaz, akkor hibát küldünk, ilyen nevű felhasználó már van
+            return;
+        }
+
+        QString addUserStr = "insert into users (username, password) values (:username, :password);";
+        QSqlQuery addUserQry;
+        addUserQry.prepare(addUserStr);
+        addUserQry.bindValue(":username", msg.username);
+        addUserQry.bindValue(":password", msg.message);
+
+        addUserQry.exec();
+
+        return;
+    }
+    if(msg.id == QString("005")) { //feliratkozás szobára
+        QString qstr = "select username from :room where username = ':username' ;";
+
+        QSqlQuery qry;
+        qry.prepare(qstr);
+        qry.bindValue(":username",msg.username);
+        qry.bindValue(":room", msg.message);
+        qry.exec();
+
+        if(qry.next()) return; //ha igaz, akkor visszatérünk, a felhasználó már feliratkozott a szobára
+
+        QString addUserStr = "insert into :room (username) values (':username');";
+        QSqlQuery addUserQry;
+        addUserQry.prepare(addUserStr);
+        addUserQry.bindValue(":username", msg.username);
+        addUserQry.bindValue(":room", msg.message);
+
+        addUserQry.exec();
+
+        return;
+    }
+    if(msg.id == QString("006")) { //leiratkozás szobáról
+        QString qstr = "select username from :room where username = ':username' ;";
+
+        QSqlQuery qry;
+        qry.prepare(qstr);
+        qry.bindValue(":username",msg.username);
+        qry.bindValue(":room", msg.message);
+        qry.exec();
+
+        if(!qry.next()) return; //ha igaz, akkor visszatérünk, a felhasználó már nincs feliratkozva
+
+        QString addUserStr = "delete from :room (username) where username= ':username';";
+        QSqlQuery addUserQry;
+        addUserQry.prepare(addUserStr);
+        addUserQry.bindValue(":username", msg.username);
+        addUserQry.bindValue(":room", msg.message);
+
+        addUserQry.exec();
+
+        return;
+    }
+    if(msg.id == QString("009")) { //kijelentkezés
+        for(auto room: users->getRooms()) {
+            QString addUserStr = "delete from :room (username) where username= ':username';";
+            QSqlQuery addUserQry;
+            addUserQry.prepare(addUserStr);
+            addUserQry.bindValue(":username", msg.username);
+            addUserQry.bindValue(":room", msg.message);
+
+            addUserQry.exec();
+        }
+        return;
+    }
 }
 
 void Server::Ready2Read(){
