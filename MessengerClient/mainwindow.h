@@ -42,12 +42,13 @@ private slots:
     //void slotAcceptUserLogin(QString& uname, QString& pw);
 
     void on_pushButton_clicked();
-
+    void onReadyRead();
     void on_actionRegister_triggered();
 
 signals:
     void connected();
     void signalConnectionStatus(QString status);
+
 
 };
 

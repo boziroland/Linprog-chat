@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(client_socket, &QTcpSocket::connected, this, &MainWindow::connected);
     connect(this, SIGNAL(signalConnectionStatus(QString)), this, SLOT(slotConnectionStatus(QString)));
+    connect(client_socket, &QTcpSocket::readyRead, this, &MainWindow::onReadyRead);
 
     currentUser = nullptr;
 
@@ -36,15 +37,15 @@ void MainWindow::SendDataToServer(Msg msg) {
             stream << msg.username;
             stream << msg.message;
 
-            //válasz
+            //várunk
 
-            QString successMsg = "You have successfully logged in";
-            QMessageBox::information(this, "Log in", successMsg);
+//            QString successMsg = "You have successfully logged in";
+//            QMessageBox::information(this, "Log in", successMsg);
 
-            if(currentUser!=nullptr) delete(currentUser);
-            currentUser = new User(msg.username);
+//            if(currentUser!=nullptr) delete(currentUser);
+//            currentUser = new User(msg.username);
 
-            emit signalConnectionStatus(QString("Connected"));
+//            emit signalConnectionStatus(QString("Connected"));
         }
         else if(msg.id == QString("002")) { //regisztráció esetén
             stream << QString(msg.id);
@@ -52,6 +53,11 @@ void MainWindow::SendDataToServer(Msg msg) {
             stream << msg.message;
         }
         else if(msg.id == QString("003")) { //üzenetküldés esetén
+            stream << QString(msg.id);
+            stream << msg.username;
+            stream << msg.message;
+        }
+        else if(msg.id == QString("009")) { //üzenetküldés esetén
             stream << QString(msg.id);
             stream << msg.username;
             stream << msg.message;
@@ -132,12 +138,13 @@ void MainWindow::on_actionDisconnect_triggered() {
 
     Msg msg;
     msg.id = QString("009");
-    msg.username = currentUser->getUsername();
+    if(currentUser!=nullptr) msg.username = currentUser->getUsername();
+    else msg.username = "";
     msg.message = "";
 
     SendDataToServer(msg);
 
-    delete(currentUser);
+    if(currentUser!=nullptr) delete(currentUser);
 
     emit signalConnectionStatus(QString("Disconnected"));
 }
@@ -187,4 +194,47 @@ void MainWindow::on_actionRegister_triggered() {
 
     }
     delete(rd);
+}
+
+void MainWindow::onReadyRead() {
+    // prepare a container to hold the UTF-8 encoded JSON we receive from the socket
+    //QByteArray jsonData;
+    Msg msg;
+    // create a QDataStream operating on the socket
+    QDataStream socketStream(client_socket);
+    socketStream.setVersion(QDataStream::Qt_5_7);
+    while (1) {
+        // we start a transaction so we can revert to the previous state in case we try to read more data than is available on the socket
+        socketStream.startTransaction();
+
+        socketStream >> msg.id;
+        socketStream >> msg.username;
+        socketStream >> msg.message;
+
+        if (socketStream.commitTransaction()) {
+            if(msg.id == QString("101")) { //login elfogadva
+                QString successMsg = "You have successfully logged in";
+                QMessageBox::information(this, "Log in", successMsg);
+
+                if(currentUser!=nullptr) delete(currentUser);
+                currentUser = new User(msg.username);
+
+                emit signalConnectionStatus(QString("Connected"));
+            }
+            if(msg.id == QString("102")) { //login elutasítva
+                QString errorMsg = "Invalid username or password";
+                QMessageBox::information(this, "Error", errorMsg);
+
+                emit signalConnectionStatus(QString("Error"));
+            }
+            if(msg.id == QString("103")) { //regisztráció sikeres
+                QMessageBox::information(this, "Register", "Thank you for joining, please log in.");
+            }
+            if(msg.id == QString("104")) { //regisztráció sikertelen
+                QMessageBox::information(this, "Register", "Invalid username or password.");
+            }
+        } else {
+            break;
+        }
+    }
 }
