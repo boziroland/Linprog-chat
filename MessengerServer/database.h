@@ -13,6 +13,7 @@ public:
     Database();
     ~Database();
     bool QueryDB(QString);
+    bool QueryDB(QSqlQuery);
 };
 
 #endif // DATABASE_H

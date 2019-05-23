@@ -7,13 +7,8 @@
 #include <iostream>
 #include <QDataStream>
 #include "database.h"
-
-
-struct Msg{
-    QString id;
-    QString username;
-    QString message;
-};
+#include "msg.h"
+#include "clienthandler.h"
 
 class Server : public QTcpServer
 {
@@ -25,15 +20,17 @@ protected:
 public:
     QTcpSocket* server_socket;
     Database* users;
+    QVector<ClientHandler*> client_list;
 
     explicit Server(QObject *parent = nullptr);
-    virtual ~Server();
+    virtual ~Server() override;
     void ReceiveCommunication(Msg);
 
 //signals:
 
 public slots:
     void Ready2Read();
+    void userDisconnected();
 };
 
 #endif // SERVER_H

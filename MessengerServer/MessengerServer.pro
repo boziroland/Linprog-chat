@@ -17,8 +17,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp \
     server.cpp \
-    database.cpp
+    database.cpp \
+    clienthandler.cpp
 
 HEADERS += \
     server.h \
-    database.h
+    database.h \
+    clienthandler.h \
+    msg.h

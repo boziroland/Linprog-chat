@@ -1,4 +1,5 @@
 #include "server.h"
+#include <functional>
 
 Server::Server(QObject *parent) : QTcpServer(parent), server_socket(new QTcpSocket(this)), users(new Database()){
 
@@ -17,7 +18,18 @@ Server::~Server(){
 
 void Server::incomingConnection(qintptr socketDescriptor){
     std::cout << "A client would like to join!" << std::endl;
-    server_socket->setSocketDescriptor(socketDescriptor);
+    ClientHandler* handler = new ClientHandler(this);
+
+    if(handler->setSocketD(socketDescriptor)){
+        handler->deleteLater();
+        return;
+    }
+
+    connect(handler, &ClientHandler::sendMsgToServer, this, &Server::ReceiveCommunication);
+    //connect(handler, &ClientHandler::getDisconnected, this, std::bind(&Server::userDisconnected,this,handler));
+
+    client_list.append(handler);
+    //server_socket->setSocketDescriptor(socketDescriptor);
 
 }
 
@@ -27,14 +39,25 @@ void Server::ReceiveCommunication(Msg msg){
     std::cout << msg.message.toStdString() << std::endl;
 
     if(msg.id == QString("001")){ //login
-
+/*
         std::string qstr = "select username from users where username = '";
         qstr.append(msg.username.toStdString());
         qstr.append("' and password = '");
         qstr.append(msg.message.toStdString());
         qstr.append("';");
+*/
 
-        if(users->QueryDB(QString(qstr.c_str()))){
+        QString qstr = "select username from users where username = :username and password = :password ;";
+
+        QSqlQuery qry;
+
+        qry.prepare(qstr);
+
+        qry.bindValue(":username",msg.username);
+        qry.bindValue(":password",msg.message);
+
+        //if(users->QueryDB(QString(qstr.c_str()))){
+        if(users->QueryDB(qry)){
             //ha igaz, akkor visszaküldés pozitív megerősítést
         }
     }
@@ -64,4 +87,8 @@ void Server::Ready2Read(){
             break;
         }
     }
+}
+
+void Server::userDisconnected(){
+
 }

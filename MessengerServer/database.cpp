@@ -35,6 +35,12 @@ bool Database::QueryDB(QString str){
     query.exec(str);
 
 
+    return true;
+}
+
+bool Database::QueryDB(QSqlQuery qry){
+    qry.exec();
+
 
     return true;
 }
