@@ -217,6 +217,9 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
 
             return;
         }
+        if(msg.id == QString("003")){
+            broadcast(msg, sender);
+        }
         if(msg.id == QString("005")) { //feliratkozás szobára
             QString qstr = "select username from :room where username = :username ;";
 
