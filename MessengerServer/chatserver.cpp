@@ -39,12 +39,26 @@ void ChatServer::sendJson(ServerWorker *destination, const Msg &message)
 
 void ChatServer::broadcast(const Msg &message, ServerWorker *exclude)
 {
-    for (ServerWorker *worker : m_clients) {
-        //Q_ASSERT(worker);
-        if (worker == exclude)
-            continue;
-        sendJson(worker, message);
+    QString qstr = "select username from :room ;";
+    QSqlQuery qry;
+    qry.prepare(qstr);
+
+    qry.bindValue(":room", message.room);
+    qry.exec();
+    qry.first();
+
+    while(qry.next()){
+
+        for (ServerWorker *worker : m_clients) {
+            if (worker->userName() == qry.value(0).toString()){
+                qDebug() << "msg is being sent to: " << worker->userName();
+                sendJson(worker, message);
+            }
+            //continue;
+            //sendJson(worker, message);
+        }
     }
+
 }
 
 void ChatServer::unicast(const Msg &message, ServerWorker *include)
@@ -113,7 +127,7 @@ Msg ChatServer::createMsg(QString* str, Msg* msg){
     return *msg;
 }
 
-void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
+void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
 {
 
     if(msg.id == QString("001")) { //login
@@ -140,10 +154,10 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
 
             emit logMessage(msg.username + " is trying to log in..");
 
-            qDebug() << "query has this many results: " << qry.value(0).toInt();
+            //qDebug() << "query has this many results: " << qry.value(0).toInt();
             if(qry.value(0).toInt() == 1){
                 Msg backGood;
-
+                sender->setUserName(msg.username);
                 QString str[5] = {"101", msg.username, "","",""}; //sikeres login
                 unicast(createMsg(str,&backGood), sender);
 
@@ -211,6 +225,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
             return;
         }
         if(msg.id == QString("003")){
+            msg.id = "105";
             broadcast(msg, sender);
 
 
