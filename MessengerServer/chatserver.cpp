@@ -143,20 +143,13 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
             qDebug() << "query has this many results: " << qry.value(0).toInt();
             if(qry.value(0).toInt() == 1){
                 Msg backGood;
-                backGood.id = "101";
-                backGood.username = msg.username;
-                backGood.message = "";
-                backGood.room = "";
-                backGood.email = "";
-                unicast(backGood, sender);
+
+                QString str[5] = {"101", msg.username, "","",""};
+                unicast(createMsg(str,&backGood), sender);
             }else{
                 Msg backNotGood;
-                backNotGood.id = "102";
-                backNotGood.username = msg.username;
-                backNotGood.message = "";
-                backNotGood.room = "";
-                backNotGood.email = "";
-                unicast(backNotGood, sender);
+                QString str[5] = {"102", msg.username, "","",""};
+                unicast(createMsg(str,&backNotGood), sender);
             }
 
             //if(users->QueryDB(QString(qstr.c_str()))){
@@ -211,7 +204,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
             addUserQry.exec();
 
             Msg SuccessfulRegistrationMsg;
-            QString str[5] = {"105", msg.username, "Success!", "", msg.email};
+            QString str[5] = {"103", msg.username, "Success!", "", msg.email};
 
             unicast(createMsg(str, &SuccessfulRegistrationMsg),sender);
 
