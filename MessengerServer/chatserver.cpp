@@ -144,11 +144,14 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
             if(qry.value(0).toInt() == 1){
                 Msg backGood;
 
-                QString str[5] = {"101", msg.username, "","",""};
+                QString str[5] = {"101", msg.username, "","",""}; //sikeres login
                 unicast(createMsg(str,&backGood), sender);
+
+
+                emit logMessage(msg.username + " logged in!");
             }else{
                 Msg backNotGood;
-                QString str[5] = {"102", msg.username, "","",""};
+                QString str[5] = {"102", msg.username, "","",""}; //sikertelen login
                 unicast(createMsg(str,&backNotGood), sender);
             }
 
@@ -182,7 +185,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
 
             if(qry.value(0).toInt() > 0) {
                 Msg UserExistsMsg;
-                QString str[5] = {"104", msg.username, "Error", "","" };
+                QString str[5] = {"104", msg.username, "Error", "","" }; //sikertelen regisztráció
 //                UserExistsMsg.id = "104";
 //                UserExistsMsg.username = msg.username;
 //                UserExistsMsg.message = "Error";
@@ -204,14 +207,19 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
             addUserQry.exec();
 
             Msg SuccessfulRegistrationMsg;
-            QString str[5] = {"103", msg.username, "Success!", "", msg.email};
+            QString str[5] = {"103", msg.username, "Success!", "", msg.email}; //sikeres regisztráció
 
             unicast(createMsg(str, &SuccessfulRegistrationMsg),sender);
+
+            emit logMessage(msg.username + " succesfully registered!");
 
             return;
         }
         if(msg.id == QString("003")){
             broadcast(msg, sender);
+
+
+            emit logMessage(msg.username + " sent a message.");
         }
         if(msg.id == QString("005")) { //feliratkozás szobára
             QString qstr = "select username from :room where username = :username ;";

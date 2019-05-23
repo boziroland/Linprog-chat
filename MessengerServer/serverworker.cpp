@@ -31,7 +31,7 @@ void ServerWorker::sendJson(const Msg &message)
 
 
     // we notify the central server we are about to send the message
-    emit logMessage("Sending to " + userName() + " - " + message.message);
+    emit logMessage("Communicating with " + userName() + " about something.. " + message.message);
     // we send the message to the socket in the exact same way we did in the client
 
 
