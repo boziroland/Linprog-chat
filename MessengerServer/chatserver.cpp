@@ -127,13 +127,22 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
             qry.exec();
             qry.first();
 
+
+            emit logMessage(msg.username + " is trying to log in..");
+
             qDebug() << "query has this many results: " << qry.value(0).toInt();
             if(qry.value(0).toInt() == 1){
-                Msg back;
-                back.id = "101";
-                back.username = "";
-                back.message = "";
-                unicast(back, sender);
+                Msg backGood;
+                backGood.id = "101";
+                backGood.username = msg.username;
+                backGood.message = "";
+                unicast(backGood, sender);
+            }else{
+                Msg backNotGood;
+                backNotGood.id = "102";
+                backNotGood.username = msg.username;
+                backNotGood.message = "";
+                unicast(backNotGood, sender);
             }
 
             //if(users->QueryDB(QString(qstr.c_str()))){
