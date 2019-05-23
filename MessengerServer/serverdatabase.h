@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QtSql>
+#include <QtDebug>
 
 class ServerDatabase
 {

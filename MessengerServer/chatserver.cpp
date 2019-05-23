@@ -136,12 +136,16 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
                 backGood.id = "101";
                 backGood.username = msg.username;
                 backGood.message = "";
+                backGood.room = "";
+                backGood.email = "";
                 unicast(backGood, sender);
             }else{
                 Msg backNotGood;
                 backNotGood.id = "102";
                 backNotGood.username = msg.username;
                 backNotGood.message = "";
+                backNotGood.room = "";
+                backNotGood.email = "";
                 unicast(backNotGood, sender);
             }
 
@@ -165,14 +169,22 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, const Msg msg)
             return;
         }
         if(msg.id == QString("002")) { //regisztráció
-            QString qstr = "select username from users where username = :username ;";
+            QString qstr = "select count(username) from users where username = :username ;";
 
             QSqlQuery qry;
             qry.prepare(qstr);
-            qry.bindValue(":username",msg.username);
+            qry.bindValue(":username", msg.username);
             qry.exec();
+            qry.first();
 
-            if(qry.next()) {
+            if(qry.value(0).toInt() > 0) {
+                Msg UserExistsMsg;
+                UserExistsMsg.id = "104";
+                UserExistsMsg.username = msg.username;
+                UserExistsMsg.message = "Error";
+                UserExistsMsg.room = "";
+                UserExistsMsg.email = "";
+                unicast(UserExistsMsg, sender);
                 //ha igaz, akkor hibát küldünk, ilyen nevű felhasználó már van
                 return;
             }

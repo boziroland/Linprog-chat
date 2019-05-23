@@ -13,11 +13,12 @@ ServerDatabase::ServerDatabase()
         QSqlQuery query;
         query.exec("create table users"
                    "(username varchar(20) primary key, "
-                   "password varchar(20));");
+                   "password varchar(20),"
+                   "email varchar(30));");
 
         QSqlQuery q2;
-        q2.exec("insert into users (username, password)"
-                "values ('albert', 'rado');");
+        q2.exec("insert into users (username, password, email)"
+                "values ('albert', 'rado', 'test@example.com');");
 
         rooms.push_back("General");
         rooms.push_back("Sports");
@@ -31,7 +32,7 @@ ServerDatabase::ServerDatabase()
         }
 
     } else {
-        std::cout << "Could not open database. " << std::endl;
+        qDebug() << "Could not open database.";
     }
 
 
