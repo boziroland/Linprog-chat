@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(client_socket, &QTcpSocket::readyRead, this, &MainWindow::onReadyRead);
 
     currentUser = nullptr;
+    roomsModel = nullptr;
 
     ui->setupUi(this);
 
@@ -20,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 MainWindow::~MainWindow() {
     delete currentUser;
+    delete roomsModel;
     delete ui;
 
 }
@@ -49,10 +51,10 @@ void MainWindow::SendDataToServer(Msg msg) {
         return;
     }
 
-    QString errorMsg = "Incorrect username or password";
-    QMessageBox::information(this, "Log in", errorMsg);
+    QString errorMsg = "Successfully disconnected.";
+    QMessageBox::information(this, "Disconnect", errorMsg);
 
-    emit signalConnectionStatus(QString("Error"));
+    //emit signalConnectionStatus(QString("Error"));
     return;
 
 }
@@ -128,6 +130,7 @@ void MainWindow::on_actionDisconnect_triggered() {
     SendDataToServer(msg);
 
     if(currentUser!=nullptr) delete(currentUser);
+    if(roomsModel!=nullptr) delete(roomsModel);
 
     emit signalConnectionStatus(QString("Disconnected"));
 }
@@ -184,8 +187,6 @@ void MainWindow::on_actionRegister_triggered() {
 }
 
 void MainWindow::onReadyRead() {
-    // prepare a container to hold the UTF-8 encoded JSON we receive from the socket
-    //QByteArray jsonData;
     Msg msg;
     // create a QDataStream operating on the socket
     QDataStream socketStream(client_socket);
@@ -206,6 +207,8 @@ void MainWindow::onReadyRead() {
                 if(currentUser!=nullptr) delete(currentUser);
                 currentUser = new User(msg.username);
 
+                getRooms();
+
                 emit signalConnectionStatus(QString("Connected"));
             }
             if(msg.id == QString("102")) { //login elutasítva
@@ -224,4 +227,17 @@ void MainWindow::onReadyRead() {
             break;
         }
     }
+}
+
+void MainWindow::getRooms() {
+    if(roomsModel!=nullptr) delete(roomsModel);
+    roomsModel = new QStringListModel(this);
+
+    QStringList list;
+    list << QString("placHolderRoom");
+    roomsModel->setStringList(list);
+    ui->roomsListView->setModel(roomsModel);
+
+    //ui->roomsListView << "kecske";
+    //delete(model);
 }

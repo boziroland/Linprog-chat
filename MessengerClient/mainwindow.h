@@ -6,6 +6,7 @@
 #include <QDataStream>
 #include "user.h"
 #include "registerdialog.h"
+#include <QStringListModel>
 
 namespace Ui {
     class MainWindow;
@@ -28,11 +29,13 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void SendDataToServer(Msg msg);
+    void getRooms();
 
 private:
     Ui::MainWindow *ui;
     QTcpSocket* client_socket;
     User* currentUser;
+    QStringListModel* roomsModel;
 
 public slots:
     void slotConnectionStatus(QString status);
