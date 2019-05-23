@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>320</width>
-    <height>240</height>
+    <height>298</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>230</x>
-     <y>10</y>
+     <x>210</x>
+     <y>40</y>
      <width>81</width>
      <height>221</height>
     </rect>
@@ -29,13 +29,13 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QWidget" name="layoutWidget">
+  <widget class="QWidget" name="">
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>30</y>
+     <y>31</y>
      <width>137</width>
-     <height>182</height>
+     <height>244</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -81,6 +81,20 @@
      <widget class="QLineEdit" name="hostLine">
       <property name="maxLength">
        <number>40</number>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="emailLabel">
+      <property name="text">
+       <string>E-mail:</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="emailLine">
+      <property name="maxLength">
+       <number>30</number>
       </property>
      </widget>
     </item>

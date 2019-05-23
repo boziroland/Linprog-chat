@@ -6,6 +6,9 @@ RegisterDialog::RegisterDialog(QWidget *parent) :
     ui(new Ui::RegisterDialog)
 {
     ui->setupUi(this);
+    
+    setWindowTitle( tr("Register") );
+    setModal( true );
 }
 
 RegisterDialog::~RegisterDialog()

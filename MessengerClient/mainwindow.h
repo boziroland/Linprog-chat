@@ -16,6 +16,8 @@ struct Msg {
     QString id; //001: login
     QString username;
     QString message;
+    QString room;
+    QString email;
 };
 
 class MainWindow : public QMainWindow {

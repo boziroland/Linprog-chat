@@ -14,6 +14,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     ui->setupUi(this);
 
+    setWindowTitle( tr("Messenger Application") );
+
 }
 
 MainWindow::~MainWindow() {
@@ -30,39 +32,16 @@ void MainWindow::SendDataToServer(Msg msg) {
         QDataStream stream(&block, QIODevice::WriteOnly);
         stream.setVersion(QDataStream::Qt_5_7);
 
-        if(msg.id == QString("001")) { //login esetén
+        if(msg.id == QString("001") || msg.id == QString("002") || msg.id == QString("003") || msg.id == QString("009")) { //login, reg, üzenetküld. és dc esetén
             emit signalConnectionStatus(QString("Connecting"));
 
             stream << QString(msg.id);
             stream << msg.username;
             stream << msg.message;
-
-            //várunk
-
-//            QString successMsg = "You have successfully logged in";
-//            QMessageBox::information(this, "Log in", successMsg);
-
-//            if(currentUser!=nullptr) delete(currentUser);
-//            currentUser = new User(msg.username);
-
-//            emit signalConnectionStatus(QString("Connected"));
+            stream << msg.room;
+            stream << msg.email;
         }
-        else if(msg.id == QString("002")) { //regisztráció esetén
-            stream << QString(msg.id);
-            stream << msg.username;
-            stream << msg.message;
-        }
-        else if(msg.id == QString("003")) { //üzenetküldés esetén
-            stream << QString(msg.id);
-            stream << msg.username;
-            stream << msg.message;
-        }
-        else if(msg.id == QString("009")) { //üzenetküldés esetén
-            stream << QString(msg.id);
-            stream << msg.username;
-            stream << msg.message;
-        }
-        else stream << QString("asd");
+        //else stream << QString("asd");
 
         stream.device()->seek(0); //magic
         client_socket->write(block);
@@ -105,6 +84,8 @@ void MainWindow::on_actionLog_in_triggered() {
         msg.id = QString("001");
         msg.username = ld->dialog_text[0];
         msg.message = ld->dialog_text[1];
+        msg.room = "";
+        msg.email = "";
 
         SendDataToServer(msg);
 
@@ -141,6 +122,8 @@ void MainWindow::on_actionDisconnect_triggered() {
     if(currentUser!=nullptr) msg.username = currentUser->getUsername();
     else msg.username = "";
     msg.message = "";
+    msg.room = "";
+    msg.email = "";
 
     SendDataToServer(msg);
 
@@ -156,6 +139,8 @@ void MainWindow::on_pushButton_clicked() {
     msg.id = QString("003");
     msg.username = currentUser->getUsername();
     msg.message = ui->msgLineEdit->text();
+    msg.room = "";
+    msg.email = "";
 
     //QMessageBox::information(this, "Debug", msg.message);
 
@@ -168,8 +153,8 @@ void MainWindow::on_actionRegister_triggered() {
 
     if(rd->exec() == QDialog::Accepted) {
 
-        if(rd->dialog_text[0] == NULL || rd->dialog_text[1] == NULL) {
-            QString errorMsg = "Please enter a valid username and password.";
+        if(rd->dialog_text[0] == NULL || rd->dialog_text[1] == NULL || rd->dialog_text[3] == NULL) {
+            QString errorMsg = "Invalid username, password or e-mail.";
             QMessageBox::information(this, "Error", errorMsg);
             delete(rd);
             return;
@@ -189,6 +174,8 @@ void MainWindow::on_actionRegister_triggered() {
         msg.id = QString("002");
         msg.username = rd->dialog_text[0];
         msg.message = rd->dialog_text[1];
+        msg.room = "";
+        msg.email = rd->dialog_text[3];
 
         SendDataToServer(msg);
 
