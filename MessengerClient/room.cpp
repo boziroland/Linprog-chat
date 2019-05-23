@@ -16,3 +16,17 @@ void Room::subscribeTo() {
 void Room::unsubscribeFrom() {
     isSubscribedTo = false;
 }
+
+QString Room::getRoomName() const
+{
+    return roomName;
+}
+
+void Room::addToLog(QString str) {
+    log.push_back(str);
+}
+
+std::vector<QString> Room::getLog() const
+{
+    return log;
+}

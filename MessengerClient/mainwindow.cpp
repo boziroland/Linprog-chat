@@ -142,7 +142,7 @@ void MainWindow::on_pushButton_clicked() {
     msg.id = QString("003");
     msg.username = currentUser->getUsername();
     msg.message = ui->msgLineEdit->text();
-    msg.room = "";
+    msg.room = currentUser->getCurrentRoom();
     msg.email = "";
 
     //QMessageBox::information(this, "Debug", msg.message);
@@ -227,6 +227,16 @@ void MainWindow::onReadyRead() {
                 QMessageBox::information(this, "Register", "Invalid username or password.");
                 //emit signalConnectionStatus(QString("Disconnected"));
             }
+            if(msg.id == QString("105")) { //üzenet érkezett
+                QString roomName = msg.room;
+                for(auto room: currentUser->getRooms()) {
+                    if(room->getRoomName() == roomName) {
+                        room->addToLog(msg.message);
+                        if(roomName == currentUser->getCurrentRoom()) refreshLog();
+                        break;
+                    }
+                }
+            }
         } else {
             break;
         }
@@ -244,4 +254,19 @@ void MainWindow::getRooms() {
 
     //ui->roomsListView << "kecske";
     //delete(model);
+}
+
+void MainWindow::refreshLog() {
+    ui->logTextEdit->clear();
+    for(auto room: currentUser->getRooms()) {
+        if(room->getRoomName() == currentUser->getCurrentRoom()) {
+            QString text = "";
+
+            for(auto fragment: room->getLog())
+                text += fragment;
+
+            ui->logTextEdit->setText(text);
+            break;
+        }
+    }
 }

@@ -30,6 +30,7 @@ public:
     ~MainWindow();
     void SendDataToServer(Msg msg);
     void getRooms();
+    void refreshLog();
 
 private:
     Ui::MainWindow *ui;

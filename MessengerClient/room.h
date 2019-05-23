@@ -12,6 +12,11 @@ public:
     void subscribeTo();
     void unsubscribeFrom();
 
+    QString getRoomName() const;
+    void addToLog(QString str);
+
+    std::vector<QString> getLog() const;
+
 private:
     QString roomName;
     std::vector<QString> log;

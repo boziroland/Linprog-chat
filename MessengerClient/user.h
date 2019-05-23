@@ -13,9 +13,15 @@ public:
     QString getUsername() const;
     ~User();
 
+    QString getCurrentRoom() const;
+    void setCurrentRoom(const QString &value);
+
+    std::vector<Room *> getRooms() const;
+
 private:
     QString username;
     std::vector<Room*> rooms;
+    QString currentRoom;
 
 signals:
 

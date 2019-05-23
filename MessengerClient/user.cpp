@@ -2,6 +2,10 @@
 
 User::User(QString username, QObject *parent) : QObject(parent) {
     this->username = username;
+    currentRoom = "General";
+
+    //teszt
+    rooms.push_back(new Room("General"));
 }
 
 QString User::getUsername() const
@@ -13,4 +17,19 @@ User::~User() {
     for(auto room: rooms) {
         delete(room);
     }
+}
+
+QString User::getCurrentRoom() const
+{
+    return currentRoom;
+}
+
+void User::setCurrentRoom(const QString &value)
+{
+    currentRoom = value;
+}
+
+std::vector<Room *> User::getRooms() const
+{
+    return rooms;
 }
