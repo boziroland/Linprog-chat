@@ -188,14 +188,14 @@ void ChatServer::msgFromUser(ServerWorker *sender, Msg msg)
             return;
         }
         if(msg.id == QString("003")){
-            if(msg.message.front() == "/"){
+            if(msg.message.at(0) == "/"){
                 QString qstr = "update users set pm = 1 where username = :username ;";
 
                 QSqlQuery qry;
                 qry.prepare(qstr);
                 qry.bindValue(":username", msg.username);
                 qry.exec();
-            }else if(msg.message.front() == "@"){
+            }else if(msg.message.at(0) == "@"){
                 msg.id = "105";
                 QString copy = msg.message;
                 QString copy2 = copy.split(" ").first();
