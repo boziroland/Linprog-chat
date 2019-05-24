@@ -34,7 +34,7 @@ void MainWindow::SendDataToServer(Msg msg) {
         QDataStream stream(&block, QIODevice::WriteOnly);
         stream.setVersion(QDataStream::Qt_5_7);
 
-        if(msg.id == QString("001") || msg.id == QString("002") || msg.id == QString("003") || msg.id == QString("009")) { //login, reg, üzenetküld. és dc esetén
+        if(msg.id == QString("001") || msg.id == QString("002") || msg.id == QString("003") || msg.id == QString("009") || msg.id == QString("200")) { //login, reg, üzenetküld. és dc esetén
             if(msg.id == QString("001")) emit signalConnectionStatus(QString("Connecting"));
 
             stream << QString(msg.id);
@@ -249,8 +249,9 @@ void MainWindow::onReadyRead() {
                     }
                 }
             }
-            if(msg.id == QString("201")) { //üzenet érkezett
+            if(msg.id == QString("201")) { //szobaadatok érkeztek
                 QStringList roomNames = msg.message.split(",");
+                qDebug() << "nicsak";
                 for(auto name: roomNames) {
                     currentUser->addRoom(new Room(name));
                 }
@@ -263,6 +264,8 @@ void MainWindow::onReadyRead() {
 }
 
 void MainWindow::getRooms() {
+    if(client_socket->state() != QAbstractSocket::ConnectedState) return;
+    qDebug() << "lekérdezés";
     Msg msg;
     msg.id = QString("200");
     msg.username = "";
@@ -300,4 +303,21 @@ void MainWindow::refreshLog() {
             break;
         }
     }
+}
+
+void MainWindow::on_roomsListView_doubleClicked(const QModelIndex &index)
+{
+    currentUser->setCurrentRoom( roomsModel->data(index).toString() );//roomsModel->stringList().at(index) );
+
+    qDebug() << currentUser->getCurrentRoom();
+
+    refreshLog();
+
+    for(auto room: currentUser->getRooms()) {
+        if(room->getRoomName() == currentUser->getCurrentRoom()) {
+            room->subscribeTo();
+            break;
+        }
+    }
+
 }

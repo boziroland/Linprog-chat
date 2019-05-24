@@ -294,6 +294,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
                 str.append(",");
             }
 
+            str.truncate(str.lastIndexOf(QChar(',')));
             Msg listMsg;
             QString strt[5] = {"201", "", str, "", ""};
             unicast(createMsg(strt, &listMsg), sender);

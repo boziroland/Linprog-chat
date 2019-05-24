@@ -3,9 +3,6 @@
 User::User(QString username, QObject *parent) : QObject(parent) {
     this->username = username;
     currentRoom = "General";
-
-    //teszt
-    rooms.push_back(new Room("General"));
 }
 
 QString User::getUsername() const

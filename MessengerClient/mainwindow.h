@@ -52,6 +52,8 @@ private slots:
     void onReadyRead();
     void on_actionRegister_triggered();
 
+    void on_roomsListView_doubleClicked(const QModelIndex &index);
+
 signals:
     void connected();
     void signalConnectionStatus(QString status);

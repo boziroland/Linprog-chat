@@ -3,6 +3,8 @@
 Room::Room(QString name, QObject *parent) : QObject(parent)
 {
     roomName = name;
+    if(name=="General") isSubscribedTo = true;
+    else isSubscribedTo = false;
 }
 
 bool Room::getIfSubscribedTo() const
