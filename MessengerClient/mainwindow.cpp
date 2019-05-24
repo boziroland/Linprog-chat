@@ -111,10 +111,6 @@ void MainWindow::slotConnectionStatus(QString status) {
 }
 
 void MainWindow::on_actionDisconnect_triggered() {
-    client_socket->disconnect();
-    client_socket->disconnectFromHost();
-    //client_socket->abort();
-
     Msg msg;
     msg.id = QString("009");
     if(currentUser!=nullptr) msg.username = currentUser->getUsername();
@@ -124,6 +120,10 @@ void MainWindow::on_actionDisconnect_triggered() {
     msg.email = "";
 
     SendDataToServer(msg);
+
+    client_socket->disconnect();
+    client_socket->disconnectFromHost();
+    //client_socket->abort();
 
     if(currentUser!=nullptr) delete currentUser;
     if(roomsModel!=nullptr) delete roomsModel;
@@ -226,8 +226,6 @@ void MainWindow::onReadyRead() {
                 QMessageBox::information(this, "Register", "Invalid username or password.");
             }
             if(msg.id == QString("105")) { //üzenet érkezett
-                qDebug() << msg.room;
-                qDebug() << currentUser->getCurrentRoom();
 
                 QString roomName = msg.room;
                 for(auto room: currentUser->getRooms()) {

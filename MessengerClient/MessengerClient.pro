@@ -43,3 +43,5 @@ FORMS += \
         mainwindow.ui \
     logindialog.ui \
     registerdialog.ui
+
+DISTFILES +=
