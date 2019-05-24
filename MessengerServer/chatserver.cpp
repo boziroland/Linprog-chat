@@ -127,6 +127,11 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
                 QString str[5] = {"101", msg.username, "","",""}; //sikeres login
                 unicast(createMsg(str,&backGood), sender);
 
+                QString addUserStr = "insert into General (username) values (:username);"; //general szobához hozzáadás
+                QSqlQuery addUserQry;
+                addUserQry.prepare(addUserStr);
+                addUserQry.bindValue(":username",msg.username);
+                addUserQry.exec();
 
                 emit logMessage(msg.username + " logged in!");
             }else{
@@ -134,22 +139,6 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
                 QString str[5] = {"102", msg.username, "","",""}; //sikertelen login
                 unicast(createMsg(str,&backNotGood), sender);
             }
-
-            //if(users->QueryDB(QString(qstr.c_str()))){
-
-            //qry.exec();
-
-            if(!qry.next()) {
-                //ha igaz, akkor visszaküldés pozitív megerősítést
-                QString addUserStr = "insert into General (username) values (:username);"; //general szobához hozzáadás
-                QSqlQuery addUserQry;
-                addUserQry.prepare(addUserStr);
-                addUserQry.bindValue(":username",msg.username);
-
-                //qDebug() << "exec was: " << addUserQry.exec();
-                //qDebug() << "the string: - " << addUserStr;
-
-            }//else?
 
             return;
         }
