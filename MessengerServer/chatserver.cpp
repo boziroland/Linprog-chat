@@ -286,6 +286,18 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
             }
             return;
         }
+        if(msg.id == QString("200")){
+            std::vector<QString> vec =  users->getRooms();
+            QString str = "";
+            for(auto elem : vec){
+                str.append(elem);
+                str.append(",");
+            }
+
+            Msg listMsg;
+            QString strt[5] = {"201", "", str, "", ""};
+            unicast(createMsg(strt, &listMsg), sender);
+        }
 
     //broadcast(msg, sender);
 }
