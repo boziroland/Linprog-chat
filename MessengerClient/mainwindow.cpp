@@ -217,7 +217,7 @@ void MainWindow::onReadyRead() {
 
                 getRooms();
 
-                //ui->logTextEdit->setText("plswork");
+                ui->unsubscribeButton->setEnabled(true);
 
                 emit signalConnectionStatus(QString("Connected"));
             }
@@ -250,7 +250,7 @@ void MainWindow::onReadyRead() {
             }
             if(msg.id == QString("201")) { //szobaadatok érkeztek
                 QStringList roomNames = msg.message.split(",");
-                qDebug() << "nicsak";
+
                 for(auto name: roomNames) {
                     currentUser->addRoom(new Room(name));
                 }
@@ -308,8 +308,6 @@ void MainWindow::on_roomsListView_clicked(const QModelIndex &index)
 {
     currentUser->setCurrentRoom( roomsModel->data(index).toString() );//roomsModel->stringList().at(index) );
 
-    qDebug() << currentUser->getCurrentRoom();
-
     refreshLog();
 
     for(auto room: currentUser->getRooms()) {
@@ -318,6 +316,30 @@ void MainWindow::on_roomsListView_clicked(const QModelIndex &index)
 
             Msg msg;
             msg.id = QString("005");
+            msg.username = currentUser->getUsername();
+            msg.message = "";
+            msg.room = room->getRoomName();
+            msg.email = "";
+
+            SendDataToServer(msg);
+
+            break;
+        }
+    }
+}
+
+void MainWindow::on_unsubscribeButton_clicked()
+{
+    if(currentUser->getCurrentRoom().isNull()) return;
+
+    for(auto room: currentUser->getRooms()) {
+        if(room->getRoomName() == currentUser->getCurrentRoom()) {
+            room->unsubscribeFrom();
+
+            currentUser->setCurrentRoom("");
+
+            Msg msg;
+            msg.id = QString("006");
             msg.username = currentUser->getUsername();
             msg.message = "";
             msg.room = room->getRoomName();

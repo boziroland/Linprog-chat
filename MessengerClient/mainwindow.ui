@@ -23,7 +23,7 @@
       <x>20</x>
       <y>21</y>
       <width>101</width>
-      <height>311</height>
+      <height>271</height>
      </rect>
     </property>
     <property name="whatsThis">
@@ -72,6 +72,22 @@
      <string>Send</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="unsubscribeButton">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>300</y>
+      <width>88</width>
+      <height>34</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Unsubscribe</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -107,7 +123,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>&amp;Disconnect &amp; Quit</string>
+    <string>&amp;Disconnect &amp;&amp; Quit</string>
    </property>
   </action>
   <action name="actionRegister">

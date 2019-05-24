@@ -52,9 +52,9 @@ private slots:
     void onReadyRead();
     void on_actionRegister_triggered();
 
-    void on_roomsListView_doubleClicked(const QModelIndex &index);
-
     void on_roomsListView_clicked(const QModelIndex &index);
+
+    void on_unsubscribeButton_clicked();
 
 signals:
     void connected();
