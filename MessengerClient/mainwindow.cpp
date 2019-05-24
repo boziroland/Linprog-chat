@@ -211,6 +211,8 @@ void MainWindow::onReadyRead() {
 
                 getRooms();
 
+                //ui->logTextEdit->setText("plswork");
+
                 emit signalConnectionStatus(QString("Connected"));
             }
             if(msg.id == QString("102")) { //login elutasítva
@@ -228,9 +230,14 @@ void MainWindow::onReadyRead() {
                 //emit signalConnectionStatus(QString("Disconnected"));
             }
             if(msg.id == QString("105")) { //üzenet érkezett
+                qDebug() << msg.room;
+                qDebug() << currentUser->getCurrentRoom();
+
                 QString roomName = msg.room;
                 for(auto room: currentUser->getRooms()) {
                     if(room->getRoomName() == roomName) {
+                        qDebug() << roomName;
+                        qDebug() << currentUser->getCurrentRoom();
                         room->addToLog(msg.message);
                         if(roomName == currentUser->getCurrentRoom()) refreshLog();
                         break;
