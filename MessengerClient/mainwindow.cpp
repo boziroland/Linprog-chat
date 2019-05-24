@@ -249,6 +249,13 @@ void MainWindow::onReadyRead() {
                     }
                 }
             }
+            if(msg.id == QString("201")) { //üzenet érkezett
+                QStringList roomNames = msg.message.split(",");
+                for(auto name: roomNames) {
+                    currentUser->addRoom(new Room(name));
+                }
+                updateRooms();
+            }
         } else {
             break;
         }
@@ -256,16 +263,28 @@ void MainWindow::onReadyRead() {
 }
 
 void MainWindow::getRooms() {
+    Msg msg;
+    msg.id = QString("200");
+    msg.username = "";
+    msg.message = "";
+    msg.room = "";
+    msg.email = "";
+
+    SendDataToServer(msg);
+
+}
+
+void MainWindow::updateRooms() {
     if(roomsModel!=nullptr) delete roomsModel;
     roomsModel = new QStringListModel(this);
 
     QStringList list;
-    list << QString("placHolderRoom");
+    //list << QString("placHolderRoom");
+
+    for(auto room: currentUser->getRooms()) list << room->getRoomName();
+
     roomsModel->setStringList(list);
     ui->roomsListView->setModel(roomsModel);
-
-    //ui->roomsListView << "kecske";
-    //delete(model);
 }
 
 void MainWindow::refreshLog() {

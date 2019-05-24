@@ -31,6 +31,7 @@ public:
     void SendDataToServer(Msg msg);
     void getRooms();
     void refreshLog();
+    void updateRooms();
 
 private:
     Ui::MainWindow *ui;

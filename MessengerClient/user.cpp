@@ -33,3 +33,7 @@ std::vector<Room *> User::getRooms() const
 {
     return rooms;
 }
+
+void User::addRoom(Room *r) {
+    rooms.push_back(r);
+}

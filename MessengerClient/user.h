@@ -18,6 +18,8 @@ public:
 
     std::vector<Room *> getRooms() const;
 
+    void addRoom(Room* r);
+
 private:
     QString username;
     std::vector<Room*> rooms;
