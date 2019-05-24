@@ -26,8 +26,11 @@
       <height>311</height>
      </rect>
     </property>
+    <property name="whatsThis">
+     <string/>
+    </property>
     <property name="editTriggers">
-     <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+     <set>QAbstractItemView::NoEditTriggers</set>
     </property>
    </widget>
    <widget class="QTextEdit" name="logTextEdit">

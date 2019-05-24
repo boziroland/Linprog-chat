@@ -34,15 +34,14 @@ void MainWindow::SendDataToServer(Msg msg) {
         QDataStream stream(&block, QIODevice::WriteOnly);
         stream.setVersion(QDataStream::Qt_5_7);
 
-        if(msg.id == QString("001") || msg.id == QString("002") || msg.id == QString("003") || msg.id == QString("009") || msg.id == QString("200")) { //login, reg, üzenetküld. és dc esetén
-            if(msg.id == QString("001")) emit signalConnectionStatus(QString("Connecting"));
+        if(msg.id == QString("001")) emit signalConnectionStatus(QString("Connecting"));
 
-            stream << QString(msg.id);
-            stream << msg.username;
-            stream << msg.message;
-            stream << msg.room;
-            stream << msg.email;
-        }
+        stream << QString(msg.id);
+        stream << msg.username;
+        stream << msg.message;
+        stream << msg.room;
+        stream << msg.email;
+
         //else stream << QString("asd");
 
         stream.device()->seek(0); //magic
@@ -305,7 +304,7 @@ void MainWindow::refreshLog() {
     }
 }
 
-void MainWindow::on_roomsListView_doubleClicked(const QModelIndex &index)
+void MainWindow::on_roomsListView_clicked(const QModelIndex &index)
 {
     currentUser->setCurrentRoom( roomsModel->data(index).toString() );//roomsModel->stringList().at(index) );
 
@@ -316,8 +315,17 @@ void MainWindow::on_roomsListView_doubleClicked(const QModelIndex &index)
     for(auto room: currentUser->getRooms()) {
         if(room->getRoomName() == currentUser->getCurrentRoom()) {
             room->subscribeTo();
+
+            Msg msg;
+            msg.id = QString("005");
+            msg.username = currentUser->getUsername();
+            msg.message = "";
+            msg.room = room->getRoomName();
+            msg.email = "";
+
+            SendDataToServer(msg);
+
             break;
         }
     }
-
 }
