@@ -236,9 +236,7 @@ void MainWindow::onReadyRead() {
                 QString roomName = msg.room;
                 for(auto room: currentUser->getRooms()) {
                     if(room->getRoomName() == roomName) {
-                        qDebug() << roomName;
-                        qDebug() << currentUser->getCurrentRoom();
-                        room->addToLog(msg.message);
+                        room->addToLog(msg.username + ": " + msg.message);
                         if(roomName == currentUser->getCurrentRoom()) refreshLog();
                         break;
                     }
@@ -269,9 +267,9 @@ void MainWindow::refreshLog() {
         if(room->getRoomName() == currentUser->getCurrentRoom()) {
             QString text = "";
 
-            for(auto fragment: room->getLog())
-                text += fragment;
-
+            for(auto fragment: room->getLog()) {
+                text = text + fragment + "\n";
+            }
             ui->logTextEdit->setText(text);
             break;
         }
