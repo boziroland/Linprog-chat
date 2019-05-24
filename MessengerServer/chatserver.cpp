@@ -22,7 +22,7 @@ void ChatServer::incomingConnection(qintptr socketDescriptor)
     }
 
     connect(worker, &ServerWorker::disconnectedFromClient, this, std::bind(&ChatServer::userDisconnected, this, worker));
-    connect(worker, &ServerWorker::error, this, std::bind(&ChatServer::userError, this, worker));
+    connect(worker, &ServerWorker::error, this, std::bind(&ChatServer::DisconnectMsg, this, worker));
     connect(worker, &ServerWorker::jsonReceived, this, std::bind(&ChatServer::jsonReceived, this, worker, std::placeholders::_1));
     connect(worker, &ServerWorker::logMessage, this, &ChatServer::logMessage);
 
@@ -34,7 +34,7 @@ void ChatServer::sendJson(ServerWorker *destination, const Msg &message)
     destination->sendJson(message);
 }
 
-void ChatServer::broadcast(const Msg &message, ServerWorker *exclude)
+void ChatServer::broadcast(const Msg &message)
 {
     QString qstr2 = "select username from " + message.room + ";";
     QSqlQuery qry;
@@ -77,10 +77,10 @@ void ChatServer::userDisconnected(ServerWorker *sender)
     sender->deleteLater();
 }
 
-void ChatServer::userError(ServerWorker *sender)
+void ChatServer::DisconnectMsg(ServerWorker *sender)
 {
     Q_UNUSED(sender)
-    emit logMessage("Error from " + sender->userName());
+    emit logMessage("Person disconnected: " + sender->userName());
 }
 
 void ChatServer::stopServer()
@@ -186,9 +186,42 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
                 qry.prepare(qstr);
                 qry.bindValue(":username", msg.username);
                 qry.exec();
+            }else if(msg.message.front() == "@"){
+                msg.id = "105";
+                QString copy = msg.message;
+                QString copy2 = copy.split(" ").first();
+                copy2.remove(0,1);
+                qDebug() << "copy2 is: " << copy2;
+                QString qstr = "select count(username) from " + msg.room + " where username = :username ;";
+                QSqlQuery qry;
+                qry.prepare(qstr);
+                qry.bindValue(":username",copy2);
+                qry.exec();
+                qry.first();
+
+                if(qry.value(0).toInt() == 1){
+
+                    QString qstr = "select count(username) from users where username = :user and pm = 1;";
+                    QSqlQuery qry2;
+                    qry2.prepare(qstr);
+                    qry2.bindValue(":user", copy2);
+                    qry2.exec();
+                    qry2.first();
+
+                    if(qry2.value(0).toInt() == 1){
+
+                        for(auto w : m_clients){
+                            if (w->userName() == copy2){
+                                unicast(msg, w);
+                                break;
+                            }
+                        }
+                        unicast(msg, sender);
+                    }
+                }
             }else{
                 msg.id = "105";
-                broadcast(msg, sender);
+                broadcast(msg);
             }
 
             emit logMessage(msg.username + " sent a message.");
@@ -200,7 +233,6 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
             QSqlQuery qry;
             qry.prepare(qstr);
             qry.bindValue(":username",msg.username);
-            //qry.bindValue(":room", msg.message);
             qry.exec();
 
             if(qry.next()) return; //ha igaz, akkor visszatérünk, a felhasználó már feliratkozott a szobára
@@ -227,7 +259,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
 
             if(!qry.next()) return; //ha igaz, akkor visszatérünk, a felhasználó már nincs feliratkozva
 
-            QString addUserStr = "delete from "+ msg.room + " (username) where username= 'username;";
+            QString addUserStr = "delete from "+ msg.room + " (username) where username = :username;";
             QSqlQuery addUserQry;
             addUserQry.prepare(addUserStr);
             addUserQry.bindValue(":username", msg.username);

@@ -23,11 +23,11 @@ signals:
 public slots:
     void stopServer();
 private slots:
-    void broadcast(const Msg &message, ServerWorker *exclude);
+    void broadcast(const Msg &message);
     void unicast(const Msg &message, ServerWorker *include);
     void jsonReceived(ServerWorker *sender, const Msg doc);
     void userDisconnected(ServerWorker *sender);
-    void userError(ServerWorker *sender);
+    void DisconnectMsg(ServerWorker *sender);
 private:
     void jsonFromLoggedIn(ServerWorker *sender, Msg);
     void sendJson(ServerWorker *destination, const Msg &message);
