@@ -67,9 +67,11 @@ void MainWindow::on_actionLog_in_triggered() {
         if(ld->dialog_text[0].isNull() || ld->dialog_text[1].isNull()) {
             QString errorMsg = "Please enter your username and password.";
             QMessageBox::information(this, "Error", errorMsg);
-            delete(ld);
+            delete ld;
             return;
         }
+
+        //if(client_socket==nullptr) client_socket = new QTcpSocket(this);
 
         client_socket->connectToHost(ld->dialog_text[2], 45732);
         //client_socket->connectToHost(QHostAddress::LocalHost,45732);
@@ -78,7 +80,7 @@ void MainWindow::on_actionLog_in_triggered() {
             QString errorMsg = "Error, host not found";
             QMessageBox::information(this, "Error", errorMsg);
             emit signalConnectionStatus(QString("Error"));
-            delete(ld);
+            delete ld;
             return;
         }
 
@@ -92,7 +94,7 @@ void MainWindow::on_actionLog_in_triggered() {
         SendDataToServer(msg);
 
     }
-    delete(ld);
+    delete ld;
 }
 
 // A kapcsolat allapotanak kijelzese es a menuelemek allitasa.
@@ -117,7 +119,8 @@ void MainWindow::slotConnectionStatus(QString status) {
 
 void MainWindow::on_actionDisconnect_triggered() {
     client_socket->disconnect();
-    client_socket->abort();
+    client_socket->disconnectFromHost();
+    //client_socket->abort();
 
     Msg msg;
     msg.id = QString("009");
@@ -129,10 +132,14 @@ void MainWindow::on_actionDisconnect_triggered() {
 
     SendDataToServer(msg);
 
-    if(currentUser!=nullptr) delete(currentUser);
-    if(roomsModel!=nullptr) delete(roomsModel);
+    if(currentUser!=nullptr) delete currentUser;
+    if(roomsModel!=nullptr) delete roomsModel;
+    ui->logTextEdit->clear();
+
 
     emit signalConnectionStatus(QString("Disconnected"));
+
+    QApplication::quit();
 }
 
 void MainWindow::on_pushButton_clicked() {
@@ -159,7 +166,7 @@ void MainWindow::on_actionRegister_triggered() {
         if(rd->dialog_text[0] == NULL || rd->dialog_text[1] == NULL || rd->dialog_text[3] == NULL) {
             QString errorMsg = "Invalid username, password or e-mail.";
             QMessageBox::information(this, "Error", errorMsg);
-            delete(rd);
+            delete rd;
             return;
         }
 
@@ -169,7 +176,7 @@ void MainWindow::on_actionRegister_triggered() {
         if(!client_socket->waitForConnected(3000)) {
             QString errorMsg = "Error, host not found";
             QMessageBox::information(this, "Error", errorMsg);
-            delete(rd);
+            delete rd;
             return;
         }
 
@@ -183,7 +190,7 @@ void MainWindow::on_actionRegister_triggered() {
         SendDataToServer(msg);
 
     }
-    delete(rd);
+    delete rd;
 }
 
 void MainWindow::onReadyRead() {
@@ -206,7 +213,7 @@ void MainWindow::onReadyRead() {
                 QString successMsg = "You have successfully logged in";
                 QMessageBox::information(this, "Log in", successMsg);
 
-                if(currentUser!=nullptr) delete(currentUser);
+                if(currentUser!=nullptr) delete currentUser;
                 currentUser = new User(msg.username);
 
                 getRooms();
@@ -249,7 +256,7 @@ void MainWindow::onReadyRead() {
 }
 
 void MainWindow::getRooms() {
-    if(roomsModel!=nullptr) delete(roomsModel);
+    if(roomsModel!=nullptr) delete roomsModel;
     roomsModel = new QStringListModel(this);
 
     QStringList list;

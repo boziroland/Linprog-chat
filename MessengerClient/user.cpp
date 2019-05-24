@@ -15,7 +15,7 @@ QString User::getUsername() const
 
 User::~User() {
     for(auto room: rooms) {
-        delete(room);
+        delete room;
     }
 }
 

@@ -98,7 +98,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>&amp;Disconnect</string>
+    <string>&amp;Disconnect &amp; Quit</string>
    </property>
   </action>
   <action name="actionRegister">
