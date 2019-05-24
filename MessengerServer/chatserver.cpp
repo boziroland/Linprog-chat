@@ -39,7 +39,7 @@ void ChatServer::sendJson(ServerWorker *destination, const Msg &message)
 
 void ChatServer::broadcast(const Msg &message, ServerWorker *exclude)
 {
-    QString qstr = "select count(username) from :room ;";
+    //QString qstr = "select count(username) from :room ;";
     QString qstr2 = "select username from " + message.room + ";";
     QSqlQuery qry;
     qry.exec(qstr2);
@@ -47,15 +47,15 @@ void ChatServer::broadcast(const Msg &message, ServerWorker *exclude)
     while(qry.next()){
 
         for (ServerWorker *worker : m_clients) {
+            qDebug() << "current worker: " << worker->userName();
             if (worker->userName() == qry.value(0).toString()){
-                qDebug() << "msg is being sent to: " << worker->userName();
-                sendJson(worker, message);
-            }
-            //continue;
-            //sendJson(worker, message);
+                    qDebug() << "msg is being sent to: " << worker->userName();
+                    sendJson(worker, message);}
         }
+        qDebug() << " end of list ";
         //if(qry.next()) break;
     }
+    qDebug() << "fgvben voltam asdfasdfadfasasdsadf";
 
 }
 
@@ -147,7 +147,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
             qry.bindValue(":password", msg.message);
 
             qry.exec();
-            qDebug() << "loginisselect " << qry.isSelect();
+            //qDebug() << "loginisselect " << qry.isSelect();
             qry.first();
 
 
@@ -179,8 +179,8 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
                 addUserQry.prepare(addUserStr);
                 addUserQry.bindValue(":username",msg.username);
 
-                qDebug() << "exec was: " << addUserQry.exec();
-                qDebug() << "the string: - " << addUserStr;
+                //qDebug() << "exec was: " << addUserQry.exec();
+                //qDebug() << "the string: - " << addUserStr;
 
             } else {
                 //hiba
@@ -211,7 +211,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
             addUserQry.bindValue(":username", msg.username);
             addUserQry.bindValue(":password", msg.message);
             addUserQry.bindValue(":email", msg.email);
-            qDebug() << "the email: "<< msg.email;
+            //qDebug() << "the email: "<< msg.email;
 
             addUserQry.exec();
 
@@ -226,7 +226,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
         }
         if(msg.id == QString("003")){
             msg.id = "105";
-            qDebug() << "message room: " << msg.room;
+            //qDebug() << "message room: " << msg.room;
             broadcast(msg, sender);
 
 
@@ -287,7 +287,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
             return;
         }
 
-    broadcast(msg, sender);
+    //broadcast(msg, sender);
 }
 
 
