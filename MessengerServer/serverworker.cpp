@@ -1,8 +1,5 @@
 #include "serverworker.h"
 #include <QDataStream>
-#include <QJsonDocument>
-#include <QJsonParseError>
-#include <QJsonObject>
 #include "QTcpServer"
 
 ServerWorker::ServerWorker(QObject *parent)
