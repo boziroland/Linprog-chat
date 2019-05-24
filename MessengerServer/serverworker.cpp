@@ -46,7 +46,7 @@ void ServerWorker::sendJson(const Msg &message)
 
 void ServerWorker::disconnectFromClient()
 {
-    m_serverSocket->disconnectFromHost();
+    m_serverSocket->close();
 }
 
 QString ServerWorker::userName() const
@@ -61,14 +61,10 @@ void ServerWorker::setUserName(const QString &userName)
 
 void ServerWorker::receiveJson()
 {
-    // prepare a container to hold the UTF-8 encoded JSON we receive from the socket
-    //QByteArray jsonData;
     Msg msg;
-    // create a QDataStream operating on the socket
     QDataStream socketStream(m_serverSocket);
     socketStream.setVersion(QDataStream::Qt_5_7);
     while (1) {
-        // we start a transaction so we can revert to the previous state in case we try to read more data than is available on the socket
         socketStream.startTransaction();
 
         socketStream >> msg.id;

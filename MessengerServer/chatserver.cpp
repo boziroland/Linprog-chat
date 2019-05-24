@@ -10,9 +10,7 @@
 
 ChatServer::ChatServer(QObject *parent)
     : QTcpServer(parent), users(new ServerDatabase())
-{
-    //listen(QHostAddress::Any, 45732);
-}
+{}
 
 void ChatServer::incomingConnection(qintptr socketDescriptor)
 {
@@ -33,17 +31,14 @@ void ChatServer::incomingConnection(qintptr socketDescriptor)
 }
 void ChatServer::sendJson(ServerWorker *destination, const Msg &message)
 {
-    Q_ASSERT(destination);
     destination->sendJson(message);
 }
 
 void ChatServer::broadcast(const Msg &message, ServerWorker *exclude)
 {
-    //QString qstr = "select count(username) from :room ;";
     QString qstr2 = "select username from " + message.room + ";";
     QSqlQuery qry;
     qry.exec(qstr2);
-    qry.first();
     while(qry.next()){
 
         for (ServerWorker *worker : m_clients) {
@@ -55,14 +50,12 @@ void ChatServer::broadcast(const Msg &message, ServerWorker *exclude)
         qDebug() << " end of list ";
         //if(qry.next()) break;
     }
-    qDebug() << "fgvben voltam asdfasdfadfasasdsadf";
 
 }
 
 void ChatServer::unicast(const Msg &message, ServerWorker *include)
 {
     for (ServerWorker *worker : m_clients) {
-        //Q_ASSERT(worker);
         if (worker == include)
             sendJson(worker, message);
     }
@@ -70,11 +63,6 @@ void ChatServer::unicast(const Msg &message, ServerWorker *include)
 
 void ChatServer::jsonReceived(ServerWorker *sender, const Msg doc)
 {
-    //Q_ASSERT(sender);
-    //emit logMessage("JSON received " + QString::fromUtf8(QJsonDocument(doc).toJson()));
-
-    //if (sender->userName().isEmpty())
-      //  return jsonFromLoggedOut(sender, doc);
 
     jsonFromLoggedIn(sender, doc);
 }
@@ -84,20 +72,8 @@ void ChatServer::userDisconnected(ServerWorker *sender)
     m_clients.removeAll(sender);
 
     const QString userName = sender->userName();
-/*
-    if (!userName.isEmpty()) {
-        QJsonObject disconnectedMessage;
-        disconnectedMessage["type"] = QStringLiteral("userdisconnected");
-        disconnectedMessage["username"] = userName;
-*/
-        Msg msg;
-        msg.id = "420";
-        msg.username = userName;
-        msg.message = " just disconnected!";
 
-        broadcast(msg, nullptr);
-        emit logMessage(userName + " disconnected");
-    //}
+    emit logMessage(userName + " disconnected");
     sender->deleteLater();
 }
 
@@ -129,13 +105,6 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
 {
 
     if(msg.id == QString("001")) { //login
-    /*
-            std::string qstr = "select username from users where username = '";
-            qstr.append(msg.username.toStdString());
-            qstr.append("' and password = '");
-            qstr.append(msg.message.toStdString());
-            qstr.append("';");
-    */
 
             QString qstr = "select count(username) from users where username = :username and password = :password ;";
 
@@ -147,9 +116,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
             qry.bindValue(":password", msg.message);
 
             qry.exec();
-            //qDebug() << "loginisselect " << qry.isSelect();
             qry.first();
-
 
             emit logMessage(msg.username + " is trying to log in..");
 
@@ -182,9 +149,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
                 //qDebug() << "exec was: " << addUserQry.exec();
                 //qDebug() << "the string: - " << addUserStr;
 
-            } else {
-                //hiba
-            }
+            }//else?
 
             return;
         }
@@ -205,7 +170,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
                 return;
             }
 
-            QString addUserStr = "insert into users (username, password, email) values (:username, :password, :email);";
+            QString addUserStr = "insert into users (username, password, email, pm) values (:username, :password, :email, 0);";
             QSqlQuery addUserQry;
             addUserQry.prepare(addUserStr);
             addUserQry.bindValue(":username", msg.username);
@@ -225,13 +190,21 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
             return;
         }
         if(msg.id == QString("003")){
-            msg.id = "105";
-            //qDebug() << "message room: " << msg.room;
-            broadcast(msg, sender);
+            if(msg.message.front() == "/"){
+                QString qstr = "update users set pm = 1 where username = :username ;";
 
+                QSqlQuery qry;
+                qry.prepare(qstr);
+                qry.bindValue(":username", msg.username);
+                qry.exec();
+            }else{
+                msg.id = "105";
+                broadcast(msg, sender);
+            }
 
             emit logMessage(msg.username + " sent a message.");
         }
+
         if(msg.id == QString("005")) { //feliratkozás szobára
             QString qstr = "select username from " + msg.room + " where username = :username ;";
 
@@ -253,6 +226,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
 
             return;
         }
+
         if(msg.id == QString("006")) { //leiratkozás szobáról
             QString qstr = "select username from " + msg.room + " where username = :username ;";
 
@@ -280,7 +254,6 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
                 QSqlQuery addUserQry;
                 addUserQry.prepare(addUserStr);
                 addUserQry.bindValue(":username", msg.username);
-                //addUserQry.bindValue(":room", msg.message);
 
                 addUserQry.exec();
             }
@@ -300,7 +273,6 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
             unicast(createMsg(strt, &listMsg), sender);
         }
 
-    //broadcast(msg, sender);
 }
 
 

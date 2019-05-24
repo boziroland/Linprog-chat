@@ -29,7 +29,6 @@ private slots:
     void userDisconnected(ServerWorker *sender);
     void userError(ServerWorker *sender);
 private:
-    //void jsonFromLoggedOut(ServerWorker *sender, const QJsonObject &doc);
     void jsonFromLoggedIn(ServerWorker *sender, Msg);
     void sendJson(ServerWorker *destination, const Msg &message);
     QVector<ServerWorker *> m_clients;

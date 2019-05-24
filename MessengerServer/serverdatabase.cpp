@@ -15,11 +15,12 @@ ServerDatabase::ServerDatabase()
         query.exec("create table users"
                    "(username varchar(20) primary key, "
                    "password varchar(20),"
-                   "email varchar(30));");
+                   "email varchar(30))"
+                   "pm integer");
 
         QSqlQuery q2;
-        q2.exec("insert into users (username, password, email)"
-                "values ('albert', 'rado', 'test@example.com');");
+        q2.exec("insert into users (username, password, email, pm)"
+                "values ('albert', 'rado', 'test@example.com', 0);");
 
         rooms.push_back("General");
         rooms.push_back("Sports");
