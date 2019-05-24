@@ -29,7 +29,6 @@ MainWindow::~MainWindow() {
 void MainWindow::SendDataToServer(Msg msg) {
 
     if(client_socket->state() == QAbstractSocket::ConnectedState) {
-        //QDataStream stream(client_socket);
         QByteArray block;
         QDataStream stream(&block, QIODevice::WriteOnly);
         stream.setVersion(QDataStream::Qt_5_7);
@@ -42,8 +41,6 @@ void MainWindow::SendDataToServer(Msg msg) {
         stream << msg.room;
         stream << msg.email;
 
-        //else stream << QString("asd");
-
         stream.device()->seek(0); //magic
         client_socket->write(block);
 
@@ -53,7 +50,6 @@ void MainWindow::SendDataToServer(Msg msg) {
     QString errorMsg = "Successfully disconnected.";
     QMessageBox::information(this, "Disconnect", errorMsg);
 
-    //emit signalConnectionStatus(QString("Error"));
     return;
 
 }
@@ -69,8 +65,6 @@ void MainWindow::on_actionLog_in_triggered() {
             delete ld;
             return;
         }
-
-        //if(client_socket==nullptr) client_socket = new QTcpSocket(this);
 
         client_socket->connectToHost(ld->dialog_text[2], 45732);
         //client_socket->connectToHost(QHostAddress::LocalHost,45732);
@@ -151,8 +145,6 @@ void MainWindow::on_pushButton_clicked() {
     msg.room = currentUser->getCurrentRoom();
     msg.email = "";
 
-    //QMessageBox::information(this, "Debug", msg.message);
-
     SendDataToServer(msg);
     ui->msgLineEdit->clear();
 }
@@ -229,11 +221,9 @@ void MainWindow::onReadyRead() {
             }
             if(msg.id == QString("103")) { //regisztráció sikeres
                 QMessageBox::information(this, "Register", "Thank you for joining, please log in.");
-                //emit signalConnectionStatus(QString("Disconnected"));
             }
             if(msg.id == QString("104")) { //regisztráció sikertelen
                 QMessageBox::information(this, "Register", "Invalid username or password.");
-                //emit signalConnectionStatus(QString("Disconnected"));
             }
             if(msg.id == QString("105")) { //üzenet érkezett
                 qDebug() << msg.room;
@@ -281,7 +271,6 @@ void MainWindow::updateRooms() {
     roomsModel = new QStringListModel(this);
 
     QStringList list;
-    //list << QString("placHolderRoom");
 
     for(auto room: currentUser->getRooms()) list << room->getRoomName();
 
