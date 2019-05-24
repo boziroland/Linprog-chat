@@ -23,15 +23,15 @@ void ChatServer::incomingConnection(qintptr socketDescriptor)
 
     connect(worker, &ServerWorker::disconnectedFromClient, this, std::bind(&ChatServer::userDisconnected, this, worker));
     connect(worker, &ServerWorker::error, this, std::bind(&ChatServer::DisconnectMsg, this, worker));
-    connect(worker, &ServerWorker::jsonReceived, this, std::bind(&ChatServer::jsonReceived, this, worker, std::placeholders::_1));
+    connect(worker, &ServerWorker::msgReceived, this, std::bind(&ChatServer::msgReceived, this, worker, std::placeholders::_1));
     connect(worker, &ServerWorker::logMessage, this, &ChatServer::logMessage);
 
-    m_clients.append(worker);
+    clientList.append(worker);
     emit logMessage(QStringLiteral("New client Connected"));
 }
-void ChatServer::sendJson(ServerWorker *destination, const Msg &message)
+void ChatServer::sendMsg(ServerWorker *destination, const Msg &message)
 {
-    destination->sendJson(message);
+    destination->sendMsg(message);
 }
 
 void ChatServer::broadcast(const Msg &message)
@@ -41,11 +41,11 @@ void ChatServer::broadcast(const Msg &message)
     qry.exec(qstr2);
     while(qry.next()){
 
-        for (ServerWorker *worker : m_clients) {
+        for (ServerWorker *worker : clientList) {
             qDebug() << "current worker: " << worker->userName();
             if (worker->userName() == qry.value(0).toString()){
                     qDebug() << "msg is being sent to: " << worker->userName();
-                    sendJson(worker, message);}
+                    sendMsg(worker, message);}
         }
         qDebug() << " end of list ";
         //if(qry.next()) break;
@@ -55,21 +55,21 @@ void ChatServer::broadcast(const Msg &message)
 
 void ChatServer::unicast(const Msg &message, ServerWorker *include)
 {
-    for (ServerWorker *worker : m_clients) {
+    for (ServerWorker *worker : clientList) {
         if (worker == include)
-            sendJson(worker, message);
+            sendMsg(worker, message);
     }
 }
 
-void ChatServer::jsonReceived(ServerWorker *sender, const Msg doc)
+void ChatServer::msgReceived(ServerWorker *sender, const Msg doc)
 {
 
-    jsonFromLoggedIn(sender, doc);
+    msgFromUser(sender, doc);
 }
 
 void ChatServer::userDisconnected(ServerWorker *sender)
 {
-    m_clients.removeAll(sender);
+    clientList.removeAll(sender);
 
     const QString userName = sender->userName();
 
@@ -85,7 +85,7 @@ void ChatServer::DisconnectMsg(ServerWorker *sender)
 
 void ChatServer::stopServer()
 {
-    for (ServerWorker *worker : m_clients) {
+    for (ServerWorker *worker : clientList) {
         worker->disconnectFromClient();
     }
     close();
@@ -101,7 +101,7 @@ Msg ChatServer::createMsg(QString* str, Msg* msg){
     return *msg;
 }
 
-void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
+void ChatServer::msgFromUser(ServerWorker *sender, Msg msg)
 {
 
     if(msg.id == QString("001")) { //login
@@ -112,8 +112,13 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
 
             qry.prepare(qstr);
 
+            QByteArray ba;
+            ba.append(msg.message);
+
+            QString encodedPw = ba.toBase64();
+
             qry.bindValue(":username", msg.username);
-            qry.bindValue(":password", msg.message);
+            qry.bindValue(":password", encodedPw);
 
             qry.exec();
             qry.first();
@@ -163,7 +168,11 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
             QSqlQuery addUserQry;
             addUserQry.prepare(addUserStr);
             addUserQry.bindValue(":username", msg.username);
-            addUserQry.bindValue(":password", msg.message);
+            QByteArray ba;
+            ba.append(msg.message);
+
+            QString encodedPw = ba.toBase64();
+            addUserQry.bindValue(":password", encodedPw);
             addUserQry.bindValue(":email", msg.email);
             //qDebug() << "the email: "<< msg.email;
 
@@ -210,7 +219,7 @@ void ChatServer::jsonFromLoggedIn(ServerWorker *sender, Msg msg)
 
                     if(qry2.value(0).toInt() == 1){
 
-                        for(auto w : m_clients){
+                        for(auto w : clientList){
                             if (w->userName() == copy2){
                                 unicast(msg, w);
                                 break;

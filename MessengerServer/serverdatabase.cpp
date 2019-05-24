@@ -18,9 +18,15 @@ ServerDatabase::ServerDatabase()
                    "email varchar(30),"
                    "pm integer);");
 
+        QByteArray ba;
+        ba.append(QString("rado"));
+
+        QString encodedPw = ba.toBase64();
+
         QSqlQuery q2;
         q2.exec("insert into users (username, password, email, pm)"
-                "values ('albert', 'rado', 'test@example.com', 0);");
+                "values ('albert', '" + encodedPw + "', 'test@example.com', 0);");
+
 
         rooms.push_back("General");
         rooms.push_back("Sports");
@@ -44,20 +50,20 @@ ServerDatabase::~ServerDatabase() {
     db.close();
 }
 
-bool ServerDatabase::QueryDB(QString str){
-    QSqlQuery query;
-    query.exec(str);
+//bool ServerDatabase::QueryDB(QString str){
+//    QSqlQuery query;
+//    query.exec(str);
 
 
-    return true;
-}
+//    return true;
+//}
 
-bool ServerDatabase::QueryDB(QSqlQuery qry){
-    qry.exec();
+//bool ServerDatabase::QueryDB(QSqlQuery qry){
+//    qry.exec();
 
 
-    return true;
-}
+//    return true;
+//}
 
 std::vector<QString> ServerDatabase::getRooms() const
 {

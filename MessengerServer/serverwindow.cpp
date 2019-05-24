@@ -2,6 +2,7 @@
 #include "ui_serverwindow.h"
 #include "chatserver.h"
 #include <QMessageBox>
+
 ServerWindow::ServerWindow(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::ServerWindow)

@@ -12,8 +12,8 @@ class ServerDatabase
 public:
     ServerDatabase();
     ~ServerDatabase();
-    bool QueryDB(QString);
-    bool QueryDB(QSqlQuery);
+    //bool QueryDB(QString);
+    //bool QueryDB(QSqlQuery);
 
     std::vector<QString> getRooms() const;
 

@@ -7,7 +7,6 @@
 #include <QSqlQuery>
 #include "serverdatabase.h"
 
-//class QThread;
 class ServerWorker;
 class ChatServer : public QTcpServer
 {
@@ -25,13 +24,13 @@ public slots:
 private slots:
     void broadcast(const Msg &message);
     void unicast(const Msg &message, ServerWorker *include);
-    void jsonReceived(ServerWorker *sender, const Msg doc);
+    void msgReceived(ServerWorker *sender, const Msg doc);
     void userDisconnected(ServerWorker *sender);
     void DisconnectMsg(ServerWorker *sender);
 private:
-    void jsonFromLoggedIn(ServerWorker *sender, Msg);
-    void sendJson(ServerWorker *destination, const Msg &message);
-    QVector<ServerWorker *> m_clients;
+    void msgFromUser(ServerWorker *sender, Msg);
+    void sendMsg(ServerWorker *destination, const Msg &message);
+    QVector<ServerWorker *> clientList;
     ServerDatabase* users;
 };
 
