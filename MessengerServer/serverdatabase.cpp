@@ -29,7 +29,7 @@ ServerDatabase::ServerDatabase()
         for(auto room: rooms) {
             QSqlQuery query;
             query.exec("create table " + room +
-                       " (username varchar(20) primary key);");
+                       "(username varchar(20) primary key);");
         }
 
     } else {
